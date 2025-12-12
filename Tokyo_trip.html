@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>東京任務 2025 - iOS 頂部選單版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <style>
+        :root { --ios-accent: #007AFF; }
+        body {
+            background: #f0f0f7;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro TC", sans-serif;
+            color: #1d1d1f;
+            overflow-x: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Liquid Animated BG */
+        .liquid-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+        }
+        .liquid-bg::after {
+            content: "";
+            position: absolute;
+            top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.4) 0%, transparent 50%),
+                        radial-gradient(circle at 70% 60%, rgba(100,150,255,0.3) 0%, transparent 50%);
+            animation: rotate 20s linear infinite;
+        }
+        @keyframes rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+        /* Glass Cards */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.4);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        /* Accordion Logic */
+        .day-accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s;
+            opacity: 0;
+        }
+        .day-group.active .day-accordion-content {
+            max-height: 2000px;
+            opacity: 1;
+            padding-top: 15px;
+        }
+        .chevron-icon {
+            transition: transform 0.3s ease;
+        }
+        .day-group.active .chevron-icon {
+            transform: rotate(180deg);
+        }
+
+        .info-tag {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            background: rgba(0,0,0,0.05);
+            margin: 4px 4px 0 0;
+            font-weight: 600;
+        }
+
+        .tab-content { display: none; animation: fadeIn 0.4s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Top Nav Styling */
+        .top-nav {
+            background: rgba(238, 238, 239, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 12px;
+            padding: 3px;
+            display: flex;
+            width: 90%;
+            margin: 10px auto;
+        }
+        .nav-btn {
+            flex: 1;
+            padding: 8px 0;
+            border-radius: 9px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #8e8e93;
+            transition: all 0.2s;
+        }
+        .nav-btn.active {
+            background: white;
+            color: #1d1d1f;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .flight-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(0, 122, 255, 0.1);
+            color: var(--ios-accent);
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="pb-10">
+
+    <div class="liquid-bg"></div>
+
+    <div class="fixed top-0 w-full z-50">
+        <header class="bg-white/30 backdrop-blur-lg h-12 flex items-center justify-center border-b border-white/20">
+            <h1 class="text-[10px] font-bold tracking-widest uppercase opacity-60">Tokyo Trip 2025</h1>
+        </header>
+        <div class="bg-white/40 backdrop-blur-md pb-2 border-b border-white/20">
+            <nav class="top-nav">
+                <button onclick="switchView('view-plan')" class="nav-btn active" id="btn-plan">
+                    <i class="fa-solid fa-calendar-day mr-1"></i> 行程表
+                </button>
+                <button onclick="switchView('view-info')" class="nav-btn" id="btn-info">
+                    <i class="fa-solid fa-info-circle mr-1"></i> 實用資訊
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <main class="pt-32 px-5 max-w-md mx-auto">
+        
+        <section id="view-plan" class="tab-content active">
+            <h2 class="text-3xl font-black mb-6 tracking-tight">行程安排</h2>
+            <div id="itinerary-container" class="space-y-4"></div>
+        </section>
+
+        <section id="view-info" class="tab-content">
+            <h2 class="text-3xl font-black mb-6 tracking-tight">實用資訊</h2>
+            
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <a href="https://www.jma.go.jp/jma/index.html" target="_blank" class="glass-card p-6 flex flex-col items-center">
+                    <i class="fa-solid fa-cloud-sun text-2xl text-blue-500 mb-2"></i>
+                    <span class="text-sm font-bold">日本氣象</span>
+                </a>
+                <a href="https://apps.apple.com/tw/app/japan-transit-planner/id299490481" target="_blank" class="glass-card p-6 flex flex-col items-center">
+                    <i class="fa-solid fa-train-subway text-2xl text-orange-500 mb-2"></i>
+                    <span class="text-sm font-bold">JapanTransit</span>
+                </a>
+            </div>
+
+            <div class="glass-card p-5 border-l-4 border-l-blue-500 mb-4">
+                <h3 class="text-sm font-bold text-blue-600 mb-3"><i class="fa-solid fa-hotel"></i> 住宿 (67 APT Kinshicho)</h3>
+                <div class="space-y-3 text-sm font-medium">
+                    <p class="text-xs opacity-70 leading-relaxed">東京都, 東京, 2-chōme-6-7 Kōtōbashi, Sumida City, Tokyo 130-0022</p>
+                    <div class="flex flex-col gap-2 pt-1">
+                        <a href="https://www.google.com/maps/search/?api=1&query=67+APT+Kinshicho" target="_blank" class="text-blue-600 py-2 bg-white/50 rounded-lg text-center text-xs font-bold shadow-sm"><i class="fa-solid fa-map-pin mr-1"></i> 開啟地圖導航</a>
+                        <a href="tel:+8107012352653" class="text-blue-600 py-2 bg-white/50 rounded-lg text-center text-xs font-bold shadow-sm"><i class="fa-solid fa-phone mr-1"></i> 聯繫住宿方</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-5 mb-4">
+                <h3 class="text-sm font-bold opacity-60 mb-3"><i class="fa-solid fa-plane"></i> 航班動態追蹤</h3>
+                <div class="space-y-3">
+                    <a href="https://zh-tw.flightaware.com/live/flight/JJP12" target="_blank" class="block p-4 bg-white/40 rounded-2xl border border-white/20">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="flight-badge">12/25 去程</span>
+                            <span class="text-[10px] font-bold opacity-40">GK 12</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="text-center">
+                                <div class="text-xl font-black">TPE</div>
+                                <div class="text-[10px] opacity-60">02:30</div>
+                            </div>
+                            <i class="fa-solid fa-plane text-blue-400 text-xs"></i>
+                            <div class="text-center">
+                                <div class="text-xl font-black">NRT</div>
+                                <div class="text-[10px] opacity-60">06:35</div>
+                            </div>
+                        </div>
+                        <div class="mt-3 text-right text-[10px] font-bold text-blue-600">
+                            查看即時動態 <i class="fa-solid fa-angle-right"></i>
+                        </div>
+                    </a>
+
+                    <a href="https://zh-tw.flightaware.com/live/flight/TGW875" target="_blank" class="block p-4 bg-white/40 rounded-2xl border border-white/20">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="flight-badge">01/02 回程</span>
+                            <span class="text-[10px] font-bold opacity-40">TR 875</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <div class="text-center">
+                                <div class="text-xl font-black">NRT</div>
+                                <div class="text-[10px] opacity-60">19:55</div>
+                            </div>
+                            <i class="fa-solid fa-plane text-blue-400 text-xs rotate-180"></i>
+                            <div class="text-center">
+                                <div class="text-xl font-black">TPE</div>
+                                <div class="text-[10px] opacity-60">23:10</div>
+                            </div>
+                        </div>
+                        <div class="mt-3 text-right text-[10px] font-bold text-blue-600">
+                            查看即時動態 <i class="fa-solid fa-angle-right"></i>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <div class="glass-card p-5">
+                <h3 class="text-sm font-bold opacity-60 mb-3"><i class="fa-solid fa-box-open"></i> 車站寄物櫃詳情</h3>
+                <div class="grid grid-cols-1 gap-2">
+                    <a href="https://www.tokyometro.jp/lang_tw/station/locker/index.html" target="_blank" class="text-xs font-bold p-3 bg-white/40 rounded-xl flex items-center justify-between">
+                        <span><i class="fa-solid fa-m text-blue-600 mr-2"></i> 東京地鐵寄物櫃</span>
+                        <i class="fa-solid fa-external-link text-[10px] opacity-30"></i>
+                    </a>
+                    <a href="https://www.jreast.co.jp/estation/stations/" target="_blank" class="text-xs font-bold p-3 bg-white/40 rounded-xl flex items-center justify-between">
+                        <span><i class="fa-solid fa-j text-green-600 mr-2"></i> JR 東日本車站地圖</span>
+                        <i class="fa-solid fa-external-link text-[10px] opacity-30"></i>
+                    </a>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const itinerary = [
+            { date: "12/25 (三)", title: "Day 1 銚子鐵道日", events: [
+                { time: "06:35", title: "NRT T3 抵達", desc: "T2/T3 休息區強制休息、用餐。", highlight: true, price: "無", hours: "24h" },
+                { time: "10:00", title: "前往 JR 銚子站", desc: "NRT T2 → 佐倉 → 銚子 (JR 總武本線)。", map: "JR Choshi Station", price: "約¥1,690", hours: "10:04發" },
+                { time: "12:58", title: "銚子電鐵 (下行)", desc: "銚子站發車 → 往外川方向。", price: "一日券¥700", hours: "12:58發" },
+                { time: "13:30", title: "犬吠埼燈塔、濕仙貝", desc: "遊覽燈塔、體驗烤仙貝、外川老街。", map: "Inubosaki Lighthouse", price: "燈塔¥300", hours: "08:30-16:00" },
+                { time: "17:35", title: "搭乘 特急 潮騷號", desc: "JR 銚子站發車 → 直達錦糸町 (19:12 抵達)。", highlight: true, price: "約¥2,980", hours: "17:35發" },
+                { time: "19:30", title: "錦糸町 Check-in", desc: "晚餐後休息。", map: "Kinshicho Station", price: "住宿費", hours: "CI 15:00+" }
+            ]},
+            { date: "12/26 (四)", title: "Day 2 皇居歷史", events: [
+                { time: "09:30", title: "皇居東御苑", desc: "遊覽本丸、二之丸遺址。", map: "The East Gardens of the Imperial Palace", price: "免費", hours: "09:00-16:00" },
+                { time: "11:00", title: "午餐：炸豬排 吉", desc: "新丸之內大廈 5F。", map: "Katsukichi Shin-Marunouchi Bldg", price: "約¥2,500", hours: "11:00-15:00" },
+                { time: "13:20", title: "桔梗門報到 (最晚)", desc: "重要：攜帶護照與許可證。", highlight: true, map: "Kikyomon Gate", price: "免費(預約)", hours: "13:20 截止" },
+                { time: "13:30", title: "皇居參觀", desc: "一般參觀行程 (約 1 小時)。", price: "免費", hours: "13:30-14:45" },
+                { time: "15:00", title: "銀座 / 東京車站", desc: "逛街、欣賞夜景。", map: "Ginza", price: "視消費", hours: "店家~20:00" }
+            ]},
+            { date: "12/27 (五)", title: "Day 3 歷史衝刺", events: [
+                { time: "09:30", title: "深川江戶資料館", desc: "休館前最後兩天。", map: "Fukagawa Edo Museum", price: "¥400", hours: "09:30-17:00" },
+                { time: "12:00", title: "午餐：Tonkatsu Hajime", desc: "日本橋炸豬排。", map: "Nihonbashi Tonkatsu Hajime", price: "約¥2,000", hours: "11:00-15:00" },
+                { time: "13:30", title: "昭和館 (九段下)", desc: "休館前最後一天，務必完成。", highlight: true, map: "Showa-kan", price: "¥300", hours: "10:00-17:30" },
+                { time: "17:30", title: "澀谷 / SHIBUYA SKY", desc: "晚餐與夜景。", map: "SHIBUYA SKY", price: "約¥2,500", hours: "10:00-22:30" }
+            ]},
+            { date: "12/28 (六)", title: "Day 4 都電荒川線", events: [
+                { time: "10:00", title: "荒川車庫前", desc: "都電回憶廣場 (週末限定開放)。", map: "Toden Omoide Hiroba", price: "免費", hours: "10:00-16:00" },
+                { time: "11:30", title: "飛鳥山車站", desc: "步道橋拍攝電車。", map: "Asukayama Station", price: "車資¥170", hours: "戶外" },
+                { time: "13:00", title: "東池袋四丁目", desc: "Sunshine City / 轉蛋森林。", map: "Sunshine City", price: "視消費", hours: "10:00-20:00" },
+                { time: "17:00", title: "早稻田大學 & 食堂", desc: "參觀校園並在食堂用餐 (晚餐)。", highlight: true, map: "Waseda University", price: "食堂¥500+", hours: "校園自由" }
+            ]},
+            { date: "12/29 (日)", title: "Day 5 台場與ACG", events: [
+                { time: "09:00", title: "豐洲市場", desc: "海鮮早餐 (餐飲區正常營業)。", map: "Toyosu Market", price: "約¥3,000", hours: "05:00-15:00" },
+                { time: "11:00", title: "台場 DiverCity", desc: "看獨角獸鋼彈。", map: "DiverCity Tokyo Plaza", price: "免費(戶外)", hours: "10:00-21:00" },
+                { time: "14:00", title: "阿美橫町 或 秋葉原", desc: "購物行程。", map: "Akihabara", price: "視消費", hours: "店家~20:00" }
+            ]},
+            { date: "12/30 (一)", title: "Day 6 下町懷舊", events: [
+                { time: "09:30", title: "龜有", desc: "兩津勘吉銅像巡禮。", map: "Kameari Station", price: "免費", hours: "戶外" },
+                { time: "13:30", title: "柴又帝釋天", desc: "寅次郎故鄉、參道、紀念館。", map: "Shibamata Taishakuten", price: "紀念館¥500", hours: "09:00-17:00" }
+            ]},
+            { date: "12/31 (二)", title: "Day 7 跨年夜", events: [
+                { time: "上午", title: "自由時間", desc: "彈性安排，可補遺漏行程或休息。", price: "-", hours: "-" },
+                { time: "傍晚", title: "東京鐵塔", desc: "芝公園周邊拍照。", map: "Tokyo Tower", price: "免費(外部)", hours: "點燈至24:00" },
+                { time: "21:00", title: "增上寺 (需提早)", desc: "23:00 開始跨年倒數，聽108鐘聲。", highlight: true, map: "Zojoji Temple", price: "免費", hours: "通宵開放" }
+            ]},
+            { date: "01/01 (三)", title: "Day 8 初詣福袋", events: [
+                { time: "01:00", title: "明治神宮 初詣", desc: "跨年後立即前往。", map: "Meiji Jingu", price: "免費", hours: "通宵開放" },
+                { time: "15:00", title: "福袋採購", desc: "錦糸町本地百貨 (ArcaKit/Olinas)。", map: "Arcakit Kinshicho", price: "視消費", hours: "10:00-19:00" }
+            ]},
+            { date: "01/02 (四)", title: "Day 9 返台", events: [
+                { time: "09:30", title: "退房 / 寄放行李", desc: "押上站寄放。", price: "¥500", hours: "05:00-24:00" },
+                { time: "10:30", title: "晴空塔 / 淺草", desc: "最後補遺。", map: "Tokyo Skytree", price: "¥2,100", hours: "10:00-21:00" },
+                { time: "15:00", title: "前往成田機場", desc: "預留充裕時間。", highlight: true, price: "約¥1,300", hours: "15:00出發" },
+                { time: "19:55", title: "TR875 起飛", desc: "NRT T2 返台。", highlight: true, price: "-", hours: "19:55" }
+            ]}
+        ];
+
+        function renderPlan() {
+            const container = document.getElementById('itinerary-container');
+            container.innerHTML = itinerary.map((day, idx) => `
+                <div class="day-group" id="day-group-${idx}">
+                    <button onclick="toggleDay(${idx})" class="glass-card w-full p-5 flex justify-between items-center text-left active:scale-[0.98] transition-all">
+                        <div class="flex flex-col">
+                            <span class="text-[10px] font-bold text-blue-600 uppercase tracking-tighter">${day.date}</span>
+                            <span class="text-lg font-bold">${day.title}</span>
+                        </div>
+                        <i class="fa-solid fa-chevron-down chevron-icon opacity-30"></i>
+                    </button>
+                    <div class="day-accordion-content">
+                        <div class="space-y-4 pl-2">
+                            ${day.events.map(e => `
+                                <div class="glass-card p-4 relative border-l-4 ${e.highlight ? 'border-l-blue-500' : 'border-l-black/10'}">
+                                    <div class="flex flex-col">
+                                        <div class="flex justify-between items-start">
+                                            <span class="text-xs font-bold ${e.highlight ? 'text-blue-600' : 'opacity-40'} font-mono">${e.time}</span>
+                                            ${e.highlight ? '<span class="text-[9px] bg-blue-500 text-white px-1.5 py-0.5 rounded-full font-bold">重要</span>' : ''}
+                                        </div>
+                                        <span class="text-base font-bold mt-1">${e.title}</span>
+                                        <p class="text-xs opacity-60 mt-1 leading-relaxed">${e.desc}</p>
+                                        <div class="mt-2 flex flex-wrap">
+                                            <span class="info-tag"><i class="fa-solid fa-yen-sign"></i> ${e.price}</span>
+                                            <span class="info-tag"><i class="fa-regular fa-clock"></i> ${e.hours}</span>
+                                        </div>
+                                        ${e.map ? `
+                                            <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(e.map)}" target="_blank" class="mt-3 py-2 bg-blue-500/10 text-blue-600 rounded-xl text-center text-[11px] font-bold">
+                                                <i class="fa-solid fa-location-arrow mr-1"></i> 導覽
+                                            </a>
+                                        ` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            toggleDay(0);
+        }
+
+        function toggleDay(idx) {
+            const el = document.getElementById(`day-group-${idx}`);
+            if (el.classList.contains('active')) {
+                el.classList.remove('active');
+            } else {
+                el.classList.add('active');
+            }
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.tab-content').forEach(v => v.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+            const btnId = viewId === 'view-plan' ? 'btn-plan' : 'btn-info';
+            document.getElementById(btnId).classList.add('active');
+            window.scrollTo(0,0);
+        }
+
+        window.addEventListener('DOMContentLoaded', renderPlan);
+    </script>
+</body>
+</html>
