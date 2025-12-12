@@ -16,6 +16,7 @@
             color: #1d1d1f;
             overflow-x: hidden;
             -webkit-tap-highlight-color: transparent;
+            scroll-behavior: smooth; /* 啟用平滑捲動 */
         }
 
         /* Liquid Animated BG */
@@ -151,8 +152,7 @@
                     <i class="fa-solid fa-cloud-sun text-2xl text-blue-500 mb-2"></i>
                     <span class="text-sm font-bold">日本氣象</span>
                 </a>
-                <!-- <a href="https://apps.apple.com/tw/app/japan-transit-planner/id299490481" target="_blank" class="glass-card p-6 flex flex-col items-center">-->
-                    <a href="JapanTransit" target="_blank" class="glass-card p-6 flex flex-col items-center">
+                <a href="https://world.jorudan.co.jp/mln/zh-tw/" target="_blank" class="glass-card p-6 flex flex-col items-center">
                     <i class="fa-solid fa-train-subway text-2xl text-orange-500 mb-2"></i>
                     <span class="text-sm font-bold">JapanTransit</span>
                 </a>
@@ -163,7 +163,7 @@
                 <div class="space-y-3 text-sm font-medium">
                     <p class="text-xs opacity-70 leading-relaxed">東京都墨田區江東橋2-6-6 (130-0022)</p>
                     <div class="flex flex-col gap-2 pt-1">
-                        <a href="https://www.google.com/maps/dir/?api=1&destination=2-chōme-6-6+Kōtōbashi,+Sumida+City,+Tokyo+130-0022" target="_blank" class="text-blue-600 py-2 bg-white/50 rounded-lg text-center text-xs font-bold shadow-sm"><i class="fa-solid fa-map-pin mr-1"></i> 開啟地圖導航</a>
+                        <a href="https://www.google.com/maps/search/?api=1&query=67+APT+Kinshicho" target="_blank" class="text-blue-600 py-2 bg-white/50 rounded-lg text-center text-xs font-bold shadow-sm"><i class="fa-solid fa-map-pin mr-1"></i> 開啟地圖導航</a>
                         <a href="tel:+8107012352653" class="text-blue-600 py-2 bg-white/50 rounded-lg text-center text-xs font-bold shadow-sm"><i class="fa-solid fa-phone mr-1"></i> 聯繫住宿方</a>
                     </div>
                 </div>
@@ -325,12 +325,12 @@
                     </div>
                 </div>
             `).join('');
-            // 預設開啟第一天
-            toggleDay(0);
+            // 預設不自動開啟（為了讓初次載入不跳動），或可自選
+            toggleDay(0, false); 
         }
 
-        // 修改(3): 行程展開時收合其他天
-        function toggleDay(idx) {
+        // 修改(2): 點擊展開並置中
+        function toggleDay(idx, shouldScroll = true) {
             const groups = document.querySelectorAll('.day-group');
             const target = document.getElementById(`day-group-${idx}`);
             const isAlreadyActive = target.classList.contains('active');
@@ -341,6 +341,20 @@
             // 2. 如果點擊的那天原本是關閉的，就把它打開
             if (!isAlreadyActive) {
                 target.classList.add('active');
+                
+                // 3. 自動置中捲動 (預留 120px 躲開頂部固定選單)
+                if (shouldScroll) {
+                    setTimeout(() => {
+                        const offset = 120; 
+                        const elementPosition = target.getBoundingClientRect().top;
+                        const offsetPosition = elementPosition + window.pageYOffset - offset;
+
+                        window.scrollTo({
+                            top: offsetPosition,
+                            behavior: 'smooth'
+                        });
+                    }, 300); // 稍微延遲等待手風琴動畫展開
+                }
             }
         }
 
