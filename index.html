@@ -147,14 +147,20 @@
         <section id="view-info" class="tab-content">
             <h2 class="text-3xl font-black mb-6 tracking-tight">實用資訊</h2>
             
-            <div class="grid grid-cols-2 gap-4 mb-4">
-                <a href="https://www.jma.go.jp/jma/index.html" target="_blank" class="glass-card p-6 flex flex-col items-center">
+            <div class="grid grid-cols-3 gap-3 mb-4">
+                <a href="https://www.jma.go.jp/jma/index.html" target="_blank" class="glass-card p-4 flex flex-col items-center justify-center text-center h-28">
                     <i class="fa-solid fa-cloud-sun text-2xl text-blue-500 mb-2"></i>
-                    <span class="text-sm font-bold">日本氣象</span>
+                    <span class="text-xs font-bold">日本氣象</span>
                 </a>
-                <a href="https://world.jorudan.co.jp/mln/zh-tw/" target="_blank" class="glass-card p-6 flex flex-col items-center">
+                
+                <a href="https://tabelog.com/tw/" target="_blank" class="glass-card p-4 flex flex-col items-center justify-center text-center h-28">
+                    <i class="fa-solid fa-utensils text-2xl text-yellow-600 mb-2"></i>
+                    <span class="text-xs font-bold">Tabelog</span>
+                </a>
+
+                <a href="https://world.jorudan.co.jp/mln/zh-tw/" target="_blank" class="glass-card p-4 flex flex-col items-center justify-center text-center h-28">
                     <i class="fa-solid fa-train-subway text-2xl text-orange-500 mb-2"></i>
-                    <span class="text-sm font-bold">JapanTransit</span>
+                    <span class="text-xs font-bold">Transit</span>
                 </a>
             </div>
 
@@ -180,12 +186,12 @@
                         <div class="flex justify-between items-center">
                             <div class="text-center">
                                 <div class="text-xl font-black">TPE</div>
-                                <div class="text-[10px] opacity-60">02:30</div>
+                                <div class="text-[10px] opacity-60" id="gk12-dep">02:30</div>
                             </div>
                             <i class="fa-solid fa-plane text-blue-400 text-xs"></i>
                             <div class="text-center">
                                 <div class="text-xl font-black">NRT</div>
-                                <div class="text-[10px] opacity-60">06:35</div>
+                                <div class="text-[10px] opacity-60" id="gk12-arr">06:35</div>
                             </div>
                         </div>
                         <div class="mt-3 text-right text-[10px] font-bold text-blue-600">
@@ -201,12 +207,12 @@
                         <div class="flex justify-between items-center">
                             <div class="text-center">
                                 <div class="text-xl font-black">NRT</div>
-                                <div class="text-[10px] opacity-60">19:55</div>
+                                <div class="text-[10px] opacity-60" id="tr875-dep">19:55</div>
                             </div>
                             <i class="fa-solid fa-plane text-blue-400 text-xs rotate-180"></i>
                             <div class="text-center">
                                 <div class="text-xl font-black">TPE</div>
-                                <div class="text-[10px] opacity-60">23:10</div>
+                                <div class="text-[10px] opacity-60" id="tr875-arr">23:10</div>
                             </div>
                         </div>
                         <div class="mt-3 text-right text-[10px] font-bold text-blue-600">
@@ -233,8 +239,9 @@
     </main>
 
     <script>
+        // 改動(1): 修正2025年的星期 (12/25是週四)
         const itinerary = [
-            { date: "12/25 (三)", title: "Day 1 銚子鐵道日", events: [
+            { date: "12/25 (四)", title: "Day 1 銚子鐵道日", events: [
                 { time: "06:35", title: "NRT T3 抵達", desc: "T2/T3 休息區強制休息、用餐。", highlight: true, price: "無", hours: "24h" },
                 { time: "10:00", title: "前往 JR 銚子站", desc: "NRT T2 → 佐倉 → 銚子 (JR 總武本線)。", map: "JR Choshi Station", price: "約¥1,690", hours: "10:04發" },
                 { time: "12:58", title: "銚子電鐵 (下行)", desc: "銚子站發車 → 往外川方向。", price: "一日券¥700", hours: "12:58發" },
@@ -242,44 +249,44 @@
                 { time: "17:35", title: "搭乘 特急 潮騷號", desc: "JR 銚子站發車 → 直達錦糸町 (19:12 抵達)。", highlight: true, price: "約¥2,980", hours: "17:35發" },
                 { time: "19:30", title: "錦糸町 Check-in", desc: "晚餐後休息。", map: "Kinshicho Station", price: "住宿費", hours: "CI 15:00+" }
             ]},
-            { date: "12/26 (四)", title: "Day 2 皇居歷史", events: [
+            { date: "12/26 (五)", title: "Day 2 皇居歷史", events: [
                 { time: "09:30", title: "皇居東御苑", desc: "遊覽本丸、二之丸遺址。", map: "The East Gardens of the Imperial Palace", price: "免費", hours: "09:00-16:00" },
                 { time: "11:00", title: "午餐：炸豬排 吉", desc: "新丸之內大廈 5F。", map: "Katsukichi Shin-Marunouchi Bldg", price: "約¥2,500", hours: "11:00-15:00" },
                 { time: "13:20", title: "桔梗門報到 (最晚)", desc: "重要：攜帶護照與許可證。", highlight: true, map: "Kikyomon Gate", price: "免費(預約)", hours: "13:20 截止" },
                 { time: "13:30", title: "皇居參觀", desc: "一般參觀行程 (約 1 小時)。", price: "免費", hours: "13:30-14:45" },
                 { time: "15:00", title: "銀座 / 東京車站", desc: "逛街、欣賞夜景。", map: "Ginza", price: "視消費", hours: "店家~20:00" }
             ]},
-            { date: "12/27 (五)", title: "Day 3 歷史衝刺", events: [
+            { date: "12/27 (六)", title: "Day 3 歷史衝刺", events: [
                 { time: "09:30", title: "深川江戶資料館", desc: "休館前最後兩天。", map: "Fukagawa Edo Museum", price: "¥400", hours: "09:30-17:00" },
                 { time: "12:00", title: "午餐：Tonkatsu Hajime", desc: "日本橋炸豬排。", map: "Nihonbashi Tonkatsu Hajime", price: "約¥2,000", hours: "11:00-15:00" },
                 { time: "13:30", title: "昭和館 (九段下)", desc: "休館前最後一天，務必完成。", highlight: true, map: "Showa-kan", price: "¥300", hours: "10:00-17:30" },
                 { time: "17:30", title: "澀谷 / SHIBUYA SKY", desc: "晚餐與夜景。", map: "SHIBUYA SKY", price: "約¥2,500", hours: "10:00-22:30" }
             ]},
-            { date: "12/28 (六)", title: "Day 4 都電荒川線", events: [
+            { date: "12/28 (日)", title: "Day 4 都電荒川線", events: [
                 { time: "10:00", title: "荒川車庫前", desc: "都電回憶廣場 (週末限定開放)。", map: "Toden Omoide Hiroba", price: "免費", hours: "10:00-16:00" },
                 { time: "11:30", title: "飛鳥山車站", desc: "步道橋拍攝電車。", map: "Asukayama Station", price: "車資¥170", hours: "戶外" },
                 { time: "13:00", title: "東池袋四丁目", desc: "Sunshine City / 轉蛋森林。", map: "Sunshine City", price: "視消費", hours: "10:00-20:00" },
                 { time: "17:00", title: "早稻田大學 & 食堂", desc: "參觀校園並在食堂用餐 (晚餐)。", highlight: true, map: "Waseda University", price: "食堂¥500+", hours: "校園自由" }
             ]},
-            { date: "12/29 (日)", title: "Day 5 台場與ACG", events: [
+            { date: "12/29 (一)", title: "Day 5 台場與ACG", events: [
                 { time: "09:00", title: "豐洲市場", desc: "海鮮早餐 (餐飲區正常營業)。", map: "Toyosu Market", price: "約¥3,000", hours: "05:00-15:00" },
                 { time: "11:00", title: "台場 DiverCity", desc: "看獨角獸鋼彈。", map: "DiverCity Tokyo Plaza", price: "免費(戶外)", hours: "10:00-21:00" },
                 { time: "14:00", title: "阿美橫町 或 秋葉原", desc: "購物行程。", map: "Akihabara", price: "視消費", hours: "店家~20:00" }
             ]},
-            { date: "12/30 (一)", title: "Day 6 下町懷舊", events: [
+            { date: "12/30 (二)", title: "Day 6 下町懷舊", events: [
                 { time: "09:30", title: "龜有", desc: "兩津勘吉銅像巡禮。", map: "Kameari Station", price: "免費", hours: "戶外" },
                 { time: "13:30", title: "柴又帝釋天", desc: "寅次郎故鄉、參道、紀念館。", map: "Shibamata Taishakuten", price: "紀念館¥500", hours: "09:00-17:00" }
             ]},
-            { date: "12/31 (二)", title: "Day 7 跨年夜", events: [
+            { date: "12/31 (三)", title: "Day 7 跨年夜", events: [
                 { time: "上午", title: "自由時間", desc: "彈性安排，可補遺漏行程或休息。", price: "-", hours: "-" },
                 { time: "傍晚", title: "東京鐵塔", desc: "芝公園周邊拍照。", map: "Tokyo Tower", price: "免費(外部)", hours: "點燈至24:00" },
                 { time: "21:00", title: "增上寺 (需提早)", desc: "23:00 開始跨年倒數，聽108鐘聲。", highlight: true, map: "Zojoji Temple", price: "免費", hours: "通宵開放" }
             ]},
-            { date: "01/01 (三)", title: "Day 8 初詣福袋", events: [
+            { date: "01/01 (四)", title: "Day 8 初詣福袋", events: [
                 { time: "01:00", title: "明治神宮 初詣", desc: "跨年後立即前往。", map: "Meiji Jingu", price: "免費", hours: "通宵開放" },
                 { time: "15:00", title: "福袋採購", desc: "錦糸町本地百貨 (ArcaKit/Olinas)。", map: "Arcakit Kinshicho", price: "視消費", hours: "10:00-19:00" }
             ]},
-            { date: "01/02 (四)", title: "Day 9 返台", events: [
+            { date: "01/02 (五)", title: "Day 9 返台", events: [
                 { time: "09:30", title: "退房 / 寄放行李", desc: "押上站寄放。", price: "¥500", hours: "05:00-24:00" },
                 { time: "10:30", title: "晴空塔 / 淺草", desc: "最後補遺。", map: "Tokyo Skytree", price: "¥2,100", hours: "10:00-21:00" },
                 { time: "15:00", title: "前往成田機場", desc: "預留充裕時間。", highlight: true, price: "約¥1,300", hours: "15:00出發" },
@@ -317,7 +324,7 @@
                                             <a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(e.map)}" target="_blank" class="mt-3 py-2 bg-blue-500/10 text-blue-600 rounded-xl text-center text-[11px] font-bold">
                                                 <i class="fa-solid fa-location-arrow mr-1"></i> 導覽
                                             </a>
-                                        ` : ''}
+                                            ` : ''}
                                     </div>
                                 </div>
                             `).join('')}
@@ -325,24 +332,20 @@
                     </div>
                 </div>
             `).join('');
-            // 預設不自動開啟（為了讓初次載入不跳動），或可自選
+            
             toggleDay(0, false); 
         }
 
-        // 修改(2): 點擊展開並置中
         function toggleDay(idx, shouldScroll = true) {
             const groups = document.querySelectorAll('.day-group');
             const target = document.getElementById(`day-group-${idx}`);
             const isAlreadyActive = target.classList.contains('active');
 
-            // 1. 先把所有天數都收起來
             groups.forEach(g => g.classList.remove('active'));
 
-            // 2. 如果點擊的那天原本是關閉的，就把它打開
             if (!isAlreadyActive) {
                 target.classList.add('active');
                 
-                // 3. 自動置中捲動 (預留 120px 躲開頂部固定選單)
                 if (shouldScroll) {
                     setTimeout(() => {
                         const offset = 120; 
@@ -353,7 +356,7 @@
                             top: offsetPosition,
                             behavior: 'smooth'
                         });
-                    }, 300); // 稍微延遲等待手風琴動畫展開
+                    }, 300);
                 }
             }
         }
@@ -367,7 +370,61 @@
             window.scrollTo(0,0);
         }
 
-        window.addEventListener('DOMContentLoaded', renderPlan);
+        // 改動(3): 航班爬蟲更新邏輯
+        async function fetchFlightData() {
+            // 注意：使用 allorigins 代理伺服器繞過 CORS。
+            // 實際效果取決於 FlightAware 是否阻擋代理伺服器的 IP。
+            const proxyBase = 'https://api.allorigins.win/raw?url=';
+            
+            // 輔助函式：抓取並解析
+            const updateTime = async (url, depId, arrId) => {
+                try {
+                    const response = await fetch(proxyBase + encodeURIComponent(url));
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    const htmlText = await response.text();
+                    
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(htmlText, 'text/html');
+
+                    // 嘗試尋找 FlightAware 的時間欄位
+                    // FlightAware 的結構經常變動，這裡嘗試抓取包含 "Gate Departure" 相關的區塊
+                    // 若抓取失敗則維持預設值
+                    
+                    // 尋找起飛時間 (Departure)
+                    // 通常在 .flightPageSummaryDeparture 下的 time 標籤或相關結構
+                    const depTimeElement = doc.querySelector('.flightPageSummaryDeparture .flightPageSummaryCityTimes span') || 
+                                           doc.querySelector('.flightPageSummaryDeparture .time');
+                    
+                    // 尋找抵達時間 (Arrival)
+                    const arrTimeElement = doc.querySelector('.flightPageSummaryArrival .flightPageSummaryCityTimes span') || 
+                                           doc.querySelector('.flightPageSummaryArrival .time');
+
+                    if (depTimeElement) {
+                        document.getElementById(depId).innerText = depTimeElement.innerText.trim();
+                        document.getElementById(depId).style.color = '#007AFF'; // 更新成功變色提示
+                    }
+                    if (arrTimeElement) {
+                        document.getElementById(arrId).innerText = arrTimeElement.innerText.trim();
+                        document.getElementById(arrId).style.color = '#007AFF';
+                    }
+
+                } catch (error) {
+                    console.log(`無法抓取航班資料 (${url}):`, error);
+                    // 失敗時不做動作，保留原始預設時間
+                }
+            };
+
+            // 執行更新
+            // GK12
+            updateTime('https://zh-tw.flightaware.com/live/flight/JJP12', 'gk12-dep', 'gk12-arr');
+            // TR875
+            updateTime('https://zh-tw.flightaware.com/live/flight/TGW875', 'tr875-dep', 'tr875-arr');
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            renderPlan();
+            fetchFlightData(); // 啟動航班更新
+        });
     </script>
 </body>
 </html>
