@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f4f7fb" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+  <meta name="description" content="2026 日本東北、藏王與東京的兩人共同旅行資料庫">
+  <title>我們的日本雪旅</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./firebase-config.js"></script>
+</head>
+<body>
+  <main class="app-shell">
+    <header class="glass-bar" aria-label="網站標題列">
+      <button class="brand" id="brandButton" type="button" aria-label="回到行程首頁">
+        <span class="brand-mark" aria-hidden="true">旅</span>
+        <span><strong>我們的日本雪旅</strong><small>2026.12.19 — 2027.01.03</small></span>
+      </button>
+
+      <nav class="desktop-tabs" aria-label="主要功能">
+        <button class="active" type="button" data-tab="itinerary">行程</button>
+        <button type="button" data-tab="library">資料庫</button>
+        <button type="button" data-tab="search">搜尋</button>
+      </nav>
+
+      <div class="collaborators">
+        <span class="sync-dot local" id="syncDot" aria-hidden="true"></span>
+        <span id="syncLabel" aria-live="polite">本機草稿</span>
+        <div class="avatar-stack" aria-label="共同編輯者">
+          <span class="avatar avatar-a" id="currentAvatar">我</span>
+          <span class="avatar avatar-b">＋</span>
+        </div>
+        <button class="icon-button" id="shareButton" type="button" aria-label="分享與共同編輯">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <div class="page-wrap">
+      <section id="itineraryView" class="view active" aria-labelledby="tripTitle">
+        <div class="hero-copy">
+          <p class="eyebrow">16 DAYS · 15 NIGHTS</p>
+          <h1 id="tripTitle">東北的雪，<br>最後落在東京。</h1>
+          <p>仙台、松島、八戶、青森、弘前，搭白神號到秋田；藏王滑兩天後，12/30 下午直接前往東京。</p>
+          <div class="hero-actions">
+            <a class="primary-button" href="#itineraryGraphic">查看行程圖</a>
+            <a class="secondary-button" href="./itinerary-2026-2027.png" download>下載行程圖</a>
+          </div>
+        </div>
+
+        <section class="panel" id="itineraryGraphic" aria-labelledby="graphicTitle">
+          <div class="section-heading">
+            <div><p class="eyebrow">MASTER ITINERARY</p><h2 id="graphicTitle">更新版行程圖</h2></div>
+            <span class="status-chip">12/30 已更新</span>
+          </div>
+          <a class="image-frame" href="./itinerary-2026-2027.png" target="_blank" rel="noreferrer" aria-label="以原始尺寸開啟行程圖">
+            <img src="./itinerary-2026-2027.svg" alt="2026年12月19日至2027年1月3日日本東北、藏王與東京16日行程圖">
+            <span class="zoom-hint">⛶ 點一下放大</span>
+          </a>
+          <p class="image-caption">時刻為 2026/7 規劃基準。白神號運轉日已確認；藏王巴士與山形新幹線最終時刻請在秋季再複核。</p>
+        </section>
+
+        <section class="day-section" aria-labelledby="dailyTitle">
+          <div class="section-heading">
+            <div><p class="eyebrow">DAY BY DAY</p><h2 id="dailyTitle">每天要去哪裡</h2></div>
+            <span class="section-note">重要資訊不只放在圖片裡</span>
+          </div>
+          <div class="day-grid" id="dayGrid"></div>
+        </section>
+      </section>
+
+      <section id="libraryView" class="view resource-page" aria-labelledby="libraryTitle" hidden>
+        <div class="section-heading library-heading">
+          <div>
+            <p class="eyebrow">SHARED LIBRARY</p>
+            <h1 id="libraryTitle">兩人的旅行資料庫</h1>
+            <p id="resourceCount">0 筆共同收藏</p>
+          </div>
+          <button class="add-button" type="button" data-action="add"><span>＋</span> 新增連結</button>
+        </div>
+        <div class="mode-banner local" id="modeBanner">
+          <span class="banner-icon">i</span>
+          <div><strong>目前是本機草稿</strong><p>資料只存在這台裝置。連接 Firebase 後才會與女朋友即時同步。</p></div>
+          <button type="button" id="modeAction">查看設定</button>
+        </div>
+        <label class="search-field" for="librarySearch">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          <input id="librarySearch" type="search" placeholder="搜尋住宿、滑雪、城市或備註" autocomplete="off">
+          <button class="clear-search" type="button" aria-label="清除搜尋" hidden>×</button>
+        </label>
+        <div class="category-row" id="categoryRow" aria-label="資料分類"></div>
+        <div class="resource-grid" id="resourceGrid"></div>
+        <div class="empty-state" id="emptyState" hidden>
+          <span>⌕</span><h2>還沒有符合的資料</h2><p>換個關鍵字，或把你剛看到的好連結加進來。</p>
+          <button class="primary-button" type="button" data-action="add">新增第一筆</button>
+        </div>
+      </section>
+
+      <section id="searchView" class="view resource-page" aria-labelledby="searchTitle" hidden>
+        <div class="section-heading library-heading">
+          <div><p class="eyebrow">SEARCH EVERYTHING</p><h1 id="searchTitle">找一筆旅行資訊</h1><p>搜尋標題、備註、城市與分類</p></div>
+          <button class="add-button" type="button" data-action="add"><span>＋</span> 新增連結</button>
+        </div>
+        <label class="search-field" for="globalSearch">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+          <input id="globalSearch" type="search" placeholder="開始輸入關鍵字" autocomplete="off">
+          <button class="clear-search" type="button" aria-label="清除搜尋" hidden>×</button>
+        </label>
+        <div class="resource-grid" id="searchResults"></div>
+        <div class="empty-state" id="searchEmpty" hidden><span>⌕</span><h2>找不到這筆資料</h2><p>換個關鍵字試試看。</p></div>
+      </section>
+    </div>
+
+    <button class="floating-add" type="button" data-action="add" aria-label="新增連結" hidden>＋</button>
+
+    <nav class="mobile-tabs" aria-label="主要功能">
+      <button class="active" type="button" data-tab="itinerary"><span>⌁</span>行程</button>
+      <button type="button" data-tab="library"><span>▦</span>資料庫</button>
+      <button type="button" data-tab="search"><span>⌕</span>搜尋</button>
+    </nav>
+  </main>
+
+  <dialog class="sheet" id="editorDialog" aria-labelledby="editorTitle">
+    <form method="dialog" class="sheet-shell" id="resourceForm">
+      <div class="sheet-grabber" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <button type="button" data-close-dialog="editorDialog">取消</button>
+        <h2 id="editorTitle">加入旅行資訊</h2>
+        <button class="sheet-save" type="submit">儲存</button>
+      </header>
+      <div class="editor-form">
+        <label><span>連結</span><input id="resourceUrl" name="url" type="url" inputmode="url" required placeholder="https://…"></label>
+        <label><span>標題</span><input id="resourceTitle" name="title" required maxlength="120" placeholder="例如：藏王滑雪纜車票價"></label>
+        <div class="form-grid">
+          <label><span>分類</span><select id="resourceCategory" name="category"></select></label>
+          <label><span>城市／地區</span><input name="location" maxlength="80" placeholder="藏王、東京…"></label>
+        </div>
+        <fieldset class="status-control"><legend>進度</legend><div>
+          <label><input type="radio" name="status" value="idea" checked><span>想去</span></label>
+          <label><input type="radio" name="status" value="shortlist"><span>候選</span></label>
+          <label><input type="radio" name="status" value="booked"><span>已預訂</span></label>
+        </div></fieldset>
+        <label><span>共同備註</span><textarea name="note" maxlength="1200" rows="4" placeholder="價格、注意事項、誰比較喜歡…"></textarea></label>
+        <label class="pin-row"><span><b>⌖</b><span><strong>置頂這筆資料</strong><small>會排在資料庫最前面</small></span></span><input name="pinned" type="checkbox"></label>
+        <button class="delete-button" id="deleteButton" type="button" hidden>刪除這筆資料</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="sheet compact-sheet" id="shareDialog" aria-labelledby="shareTitle">
+    <div class="sheet-shell">
+      <div class="sheet-grabber" aria-hidden="true"></div>
+      <header class="sheet-header"><button type="button" data-close-dialog="shareDialog">完成</button><h2 id="shareTitle">共同編輯</h2><span></span></header>
+      <div class="share-content">
+        <div class="share-visual"><span class="avatar avatar-a">我</span><span></span><span class="avatar avatar-b">她</span></div>
+        <h3 id="shareHeading">分享這趟旅行</h3>
+        <p id="shareDescription">把網站網址傳給女朋友。</p>
+        <div class="share-url"><input id="shareUrl" readonly aria-label="網站網址"><button id="copyShareUrl" type="button">複製</button></div>
+        <button class="google-button" id="googleSignIn" type="button" hidden>
+          <span aria-hidden="true">G</span>使用 Google 登入共同資料庫
+        </button>
+        <button class="secondary-button wide-button" id="googleSignOut" type="button" hidden>登出 Google</button>
+        <div class="uid-card" id="uidCard" hidden><p>你的 Firebase UID</p><code id="userUid"></code><button id="copyUid" type="button">複製 UID</button></div>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="sheet compact-sheet" id="setupDialog" aria-labelledby="setupTitle">
+    <div class="sheet-shell">
+      <div class="sheet-grabber" aria-hidden="true"></div>
+      <header class="sheet-header"><button type="button" data-close-dialog="setupDialog">完成</button><h2 id="setupTitle">雲端同步設定</h2><span></span></header>
+      <div class="share-content setup-content">
+        <span class="setup-icon">☁</span>
+        <h3>還差 Firebase 連線</h3>
+        <p>目前新增的資料只存在這個瀏覽器。完成 Firebase 設定後，兩人登入 Google 就能即時看到同一份內容。</p>
+        <ol><li>建立 Firebase Web App 與 Firestore。</li><li>啟用 Google 登入。</li><li>把 Web config 填進 <code>firebase-config.js</code>。</li><li>部署附帶的 Firestore Security Rules。</li></ol>
+        <a class="primary-button wide-button" href="https://console.firebase.google.com/" target="_blank" rel="noreferrer">開啟 Firebase Console</a>
+      </div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" hidden><span>✓</span><b id="toastText"></b></div>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
