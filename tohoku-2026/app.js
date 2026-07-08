@@ -273,7 +273,17 @@ function listenToCloud() {
     setSyncStatus("cloud"); updateModeBanner(); renderResources();
     if (snapshot.empty && !sessionStorage.getItem("trip-seeded")) {
       sessionStorage.setItem("trip-seeded","1");
-      await Promise.all(seedResources.map((resource) => f.setDoc(f.doc(state.firebase.db,"boards",BOARD_ID,"resources",resource.id),{ ...resource,createdAt:f.serverTimestamp(),updatedAt:f.serverTimestamp(),createdBy:"行程整理",updatedBy:"行程整理" })));
+      const localDrafts = loadLocalResources();
+      await Promise.all(localDrafts.map((resource) => f.setDoc(
+        f.doc(state.firebase.db,"boards",BOARD_ID,"resources",resource.id),
+        {
+          ...resource,
+          createdAt:f.serverTimestamp(),
+          updatedAt:f.serverTimestamp(),
+          createdBy:resource.createdBy || resource.updatedBy || "旅伴",
+          updatedBy:resource.updatedBy || "旅伴",
+        },
+      )));
     }
   }, (error) => {
     console.warn(error); state.authorized = false; state.backend = "local"; state.resources = loadLocalResources();
