@@ -11,6 +11,10 @@ service cloud.firestore {
       allow read, create, update, delete: if isBoardMember(boardId);
     }
 
+    match /boards/{boardId}/itineraryItems/{itemId} {
+      allow read, create, update, delete: if isBoardMember(boardId);
+    }
+
     match /boards/{boardId}/members/{uid} {
       allow read: if request.auth != null && request.auth.uid == uid;
       allow write: if false;

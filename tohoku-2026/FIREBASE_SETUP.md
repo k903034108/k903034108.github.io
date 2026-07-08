@@ -11,4 +11,6 @@
    - `boards/tohoku-2026/members/GIRLFRIEND_UID`
 8. Each member document may contain a single field such as `role: "editor"`.
 
+The shared site stores saved links in `resources` and user-added daily plans in `itineraryItems`. Both collections are protected by the same member check in the example rules.
+
 Never put a service-account key, Google password, GitHub token, or Firebase Admin credential in this public repository.

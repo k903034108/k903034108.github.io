@@ -1,5 +1,6 @@
 const FIREBASE_VERSION = "12.15.0";
 const STORAGE_KEY = "tohoku-2026-resources-v1";
+const ITINERARY_STORAGE_KEY = "tohoku-2026-itinerary-items-v1";
 const BOARD_ID = window.TRIP_BOARD_ID || "tohoku-2026";
 
 const categories = [
@@ -41,12 +42,19 @@ const state = {
   category: "all",
   query: "",
   resources: [],
+  itineraryItems: [],
   editingId: null,
+  editingItineraryId: null,
   backend: "local",
   firebase: null,
+  firebaseError: false,
   user: null,
   authorized: false,
-  unsubscribe: null,
+  resourceAuthorized: false,
+  itineraryAuthorized: false,
+  unsubscribeResources: null,
+  unsubscribeItinerary: null,
+  selectedDayKey: null,
 };
 
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -65,17 +73,78 @@ function saveLocalResources() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state.resources));
 }
 
+function loadLocalItineraryItems() {
+  try {
+    const stored = JSON.parse(localStorage.getItem(ITINERARY_STORAGE_KEY) || "[]");
+    return Array.isArray(stored) ? stored : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveLocalItineraryItems() {
+  localStorage.setItem(ITINERARY_STORAGE_KEY, JSON.stringify(state.itineraryItems));
+}
+
 function renderItinerary() {
   $("#dayGrid").innerHTML = itinerary.map((item) => `
-    <article class="day-card tone-${item.tone}">
-      <div class="day-date"><strong>${item.date}</strong><span>週${item.day}</span></div>
-      <div class="day-content">
-        <p class="city-label">${item.city}</p><h3>${item.title}</h3><p>${item.detail}</p>
-        ${item.transport ? `<small>${item.transport}</small>` : ""}
-        ${item.notice ? `<em>${item.notice}</em>` : ""}
-      </div>
-      <span class="stay-chip">${item.stay}</span>
-    </article>`).join("");
+    <button class="day-button tone-${item.tone}" type="button" data-day="${itineraryDateKey(item)}" aria-label="查看 ${item.date} ${item.city} 行程" aria-haspopup="dialog" aria-controls="dayDialog" aria-expanded="${state.selectedDayKey === itineraryDateKey(item) && $("#dayDialog")?.open ? "true" : "false"}">
+      <span class="day-button-top"><strong>${item.date}</strong><span class="weekday">週${item.day}</span></span>
+      <span class="city-label">${item.city}</span><span class="day-title">${item.title}</span>
+      ${itemsForDay(itineraryDateKey(item)).length ? `<span class="day-button-count" aria-label="${itemsForDay(itineraryDateKey(item)).length} 筆自訂行程">${itemsForDay(itineraryDateKey(item)).length}</span>` : ""}
+    </button>`).join("");
+}
+
+function itineraryDateKey(item) {
+  const [month, day] = item.date.split("/").map((value) => value.padStart(2,"0"));
+  return `${month === "12" ? "2026" : "2027"}-${month}-${day}`;
+}
+
+function tripDay(dateKey) {
+  return itinerary.find((item) => itineraryDateKey(item) === dateKey);
+}
+
+function itemsForDay(dateKey) {
+  return state.itineraryItems
+    .filter((item) => item.date === dateKey)
+    .sort((a, b) => String(a.time || "99:99").localeCompare(String(b.time || "99:99")) || timestampValue(a.createdAt) - timestampValue(b.createdAt));
+}
+
+function renderItineraryDateOptions() {
+  $("#itineraryDate").innerHTML = itinerary.map((item) => `<option value="${itineraryDateKey(item)}">${item.date}（週${item.day}） · ${item.city}</option>`).join("");
+}
+
+function openDayDialog(dateKey) {
+  const item = tripDay(dateKey);
+  if (!item) return;
+  state.selectedDayKey = dateKey;
+  renderDayDetails();
+  const dialog = $("#dayDialog");
+  if (!dialog.open) dialog.showModal();
+  $$('[data-day]').forEach((button) => button.setAttribute("aria-expanded",String(button.dataset.day === dateKey)));
+}
+
+function renderDayDetails() {
+  const item = tripDay(state.selectedDayKey);
+  if (!item) return;
+  $("#dayDialogDate").textContent = `${item.date} · 週${item.day}`;
+  $("#dayDialogTitle").textContent = item.title;
+  $("#dayDialogCity").textContent = `${item.city} · 住宿：${item.stay}`;
+  const rows = [
+    { label:"主要行程",title:item.title,detail:item.detail },
+    item.transport ? { label:"移動方式",title:"交通安排",detail:item.transport } : null,
+    item.notice ? { label:"注意事項",title:"出發前確認",detail:item.notice } : null,
+  ].filter(Boolean);
+  $("#dayPlanList").innerHTML = rows.map((row) => `
+    <section class="plan-row"><span class="plan-dot" aria-hidden="true"></span><small>${escapeHtml(row.label)}</small><h3>${escapeHtml(row.title)}</h3><p>${escapeHtml(row.detail)}</p></section>`).join("");
+
+  const customItems = itemsForDay(state.selectedDayKey);
+  $("#dayAgenda").innerHTML = customItems.length ? customItems.map((agenda) => `
+    <button class="agenda-item" type="button" data-itinerary-edit="${escapeAttr(agenda.id)}" aria-label="編輯 ${escapeAttr(agenda.title)}">
+      <span class="agenda-time">${escapeHtml(agenda.time || "未定")}</span>
+      <span class="agenda-main"><strong>${escapeHtml(agenda.title)}</strong>${agenda.location ? `<span class="agenda-location">⌖ ${escapeHtml(agenda.location)}</span>` : ""}${agenda.notes ? `<span class="agenda-note">注意：${escapeHtml(agenda.notes)}</span>` : ""}</span>
+      <span class="agenda-more" aria-hidden="true">•••</span>
+    </button>`).join("") : `<div class="agenda-empty"><span aria-hidden="true">＋</span><p>這天還沒有自己安排的細項<br>按「安排這一天」開始新增。</p></div>`;
 }
 
 function renderCategories() {
@@ -178,7 +247,7 @@ async function submitResource(event) {
   };
   setSyncStatus("saving");
   try {
-    if (state.backend === "cloud" && state.authorized) {
+    if (state.backend === "cloud" && state.resourceAuthorized) {
       const { collection,addDoc,doc,updateDoc,serverTimestamp } = state.firebase.firestore;
       const payload = { ...input, updatedAt:serverTimestamp(), updatedBy:state.user.displayName || state.user.email || "旅伴" };
       if (current) await updateDoc(doc(state.firebase.db,"boards",BOARD_ID,"resources",current.id),payload);
@@ -197,7 +266,7 @@ async function deleteCurrentResource() {
   if (!resource || !confirm(`確定要刪除「${resource.title}」嗎？`)) return;
   setSyncStatus("saving");
   try {
-    if (state.backend === "cloud" && state.authorized) {
+    if (state.backend === "cloud" && state.resourceAuthorized) {
       const { doc,deleteDoc } = state.firebase.firestore;
       await deleteDoc(doc(state.firebase.db,"boards",BOARD_ID,"resources",resource.id));
     } else {
@@ -207,20 +276,132 @@ async function deleteCurrentResource() {
   } catch (error) { console.error(error); setSyncStatus("error"); showToast("暫時無法刪除"); }
 }
 
+function canOpenItineraryEditor() {
+  if (!firebaseConfigured()) return true;
+  if (state.firebaseError) { showToast("Firebase 目前連線失敗，請重新整理後再試"); return false; }
+  if (state.user && state.itineraryAuthorized) return true;
+  openShareDialog();
+  showToast(state.user ? "行程同步權限尚未就緒" : "請先登入再共同編輯行程");
+  return false;
+}
+
+function openItineraryEditor(id = null, dateKey = null) {
+  if (!canOpenItineraryEditor()) return;
+  state.editingItineraryId = id;
+  const form = $("#itineraryForm");
+  form.reset();
+  renderItineraryDateOptions();
+  $("#itineraryEditorTitle").textContent = id ? "編輯行程" : "新增行程";
+  $("#deleteItineraryButton").hidden = !id;
+  $("#itinerarySyncNote").textContent = firebaseConfigured() ? "儲存後會即時同步給兩個人。" : "目前會先儲存在這台裝置。";
+  form.elements.date.value = dateKey || itineraryDateKey(itinerary[0]);
+
+  if (id) {
+    const item = state.itineraryItems.find((entry) => entry.id === id);
+    if (!item) return;
+    form.elements.date.value = item.date;
+    form.elements.time.value = item.time || "";
+    form.elements.title.value = item.title;
+    form.elements.location.value = item.location || "";
+    form.elements.notes.value = item.notes || "";
+  }
+  $("#itineraryEditorDialog").showModal();
+}
+
+async function submitItineraryItem(event) {
+  event.preventDefault();
+  if (!canOpenItineraryEditor()) return;
+  const form = new FormData(event.currentTarget);
+  const date = String(form.get("date") || "");
+  const time = String(form.get("time") || "");
+  const title = String(form.get("title") || "").trim().slice(0,120);
+  const location = String(form.get("location") || "").trim().slice(0,120);
+  const notes = String(form.get("notes") || "").trim().slice(0,2000);
+  if (!tripDay(date)) { showToast("請選擇這趟旅行中的日期"); return; }
+  if (!title) { showToast("請輸入行程名稱"); return; }
+  if (time && !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) { showToast("時間格式不正確"); return; }
+
+  const current = state.itineraryItems.find((item) => item.id === state.editingItineraryId);
+  const input = { date,time,title,location,notes };
+  const personName = currentUserName();
+  setSyncStatus("saving");
+  try {
+    if (firebaseConfigured()) {
+      const { collection,addDoc,doc,updateDoc,serverTimestamp } = state.firebase.firestore;
+      const updatedFields = { ...input,updatedByUid:state.user.uid,updatedByName:personName,updatedAt:serverTimestamp() };
+      if (current) {
+        await updateDoc(doc(state.firebase.db,"boards",BOARD_ID,"itineraryItems",current.id),updatedFields);
+      } else {
+        await addDoc(collection(state.firebase.db,"boards",BOARD_ID,"itineraryItems"),{
+          ...updatedFields,createdByUid:state.user.uid,createdByName:personName,createdAt:serverTimestamp(),
+        });
+      }
+    } else {
+      const now = Date.now();
+      if (current) {
+        state.itineraryItems = state.itineraryItems.map((item) => item.id === current.id ? { ...item,...input,updatedAt:now,updatedByName:personName } : item);
+      } else {
+        state.itineraryItems.push({ id:crypto.randomUUID?.() || `local-${now}`,...input,createdAt:now,updatedAt:now,createdByName:personName,updatedByName:personName });
+      }
+      saveLocalItineraryItems();
+      renderItinerary();
+      setSyncStatus("local");
+    }
+    state.selectedDayKey = date;
+    $("#itineraryEditorDialog").close();
+    openDayDialog(date);
+    showToast(current ? "行程已更新" : "行程已加入");
+  } catch (error) {
+    console.error(error);
+    setSyncStatus("error");
+    showToast(error?.code === "permission-denied" ? "這個帳號沒有行程編輯權限" : "暫時無法儲存行程");
+  }
+}
+
+async function deleteCurrentItineraryItem() {
+  const item = state.itineraryItems.find((entry) => entry.id === state.editingItineraryId);
+  if (!item || !confirm(`確定要刪除「${item.title}」嗎？`)) return;
+  setSyncStatus("saving");
+  try {
+    if (firebaseConfigured()) {
+      if (!state.itineraryAuthorized) throw Object.assign(new Error("permission denied"),{ code:"permission-denied" });
+      const { doc,deleteDoc } = state.firebase.firestore;
+      await deleteDoc(doc(state.firebase.db,"boards",BOARD_ID,"itineraryItems",item.id));
+    } else {
+      state.itineraryItems = state.itineraryItems.filter((entry) => entry.id !== item.id);
+      saveLocalItineraryItems();
+      renderItinerary();
+      renderDayDetails();
+      setSyncStatus("local");
+    }
+    $("#itineraryEditorDialog").close();
+    showToast("行程已刪除");
+  } catch (error) {
+    console.error(error);
+    setSyncStatus("error");
+    showToast(error?.code === "permission-denied" ? "這個帳號沒有行程編輯權限" : "暫時無法刪除行程");
+  }
+}
+
+function currentUserName() {
+  return String(state.user?.displayName || state.user?.email || "旅伴").trim().slice(0,80) || "旅伴";
+}
+
 function setSyncStatus(mode) {
   const dot = $("#syncDot"); dot.className = "sync-dot";
   if (mode === "local") { dot.classList.add("local"); $("#syncLabel").textContent = "本機草稿"; }
   if (mode === "saving") { dot.classList.add("saving"); $("#syncLabel").textContent = "正在儲存…"; }
+  if (mode === "connecting") { dot.classList.add("saving"); $("#syncLabel").textContent = "同步連線中…"; }
   if (mode === "cloud") { $("#syncLabel").textContent = "已即時同步"; }
   if (mode === "error") { dot.classList.add("error"); $("#syncLabel").textContent = "連線異常"; }
 }
 
 function updateModeBanner() {
   const banner = $("#modeBanner");
-  if (state.backend === "cloud") {
+  if (state.backend === "cloud" && state.authorized) {
     banner.className = "mode-banner cloud"; banner.innerHTML = `<span class="banner-icon">✓</span><div><strong>Firebase 即時同步已連線</strong><p>你和女朋友會看到同一份資料。</p></div><button type="button" id="modeAction">帳號資訊</button>`;
   } else if (firebaseConfigured() && state.user) {
-    banner.className = "mode-banner local"; banner.innerHTML = `<span class="banner-icon">!</span><div><strong>已登入，等待資料庫授權</strong><p>複製 UID，加入 Firestore members 後即可同步。</p></div><button type="button" id="modeAction">查看 UID</button>`;
+    banner.className = "mode-banner local"; banner.innerHTML = `<span class="banner-icon">!</span><div><strong>已登入，等待資料庫授權</strong><p>請確認目前登入的是這趟旅程已授權的帳號。</p></div><button type="button" id="modeAction">查看 UID</button>`;
   } else if (firebaseConfigured()) {
     banner.className = "mode-banner local"; banner.innerHTML = `<span class="banner-icon">G</span><div><strong>雲端已設定，請先登入</strong><p>使用 Google 帳號登入共同資料庫。</p></div><button type="button" id="modeAction">登入</button>`;
   } else {
@@ -238,8 +419,8 @@ function openShareDialog() {
   if (state.user) { $("#userUid").textContent = state.user.uid; $("#currentAvatar").textContent = initials(state.user.displayName || state.user.email || "我"); }
   if (!configured) { $("#shareHeading").textContent = "分享行程頁面"; $("#shareDescription").textContent = "目前新增內容只存於這台裝置；設定 Firebase 後才是共同編輯。"; }
   else if (!state.user) { $("#shareHeading").textContent = "登入共同資料庫"; $("#shareDescription").textContent = "你和女朋友各自使用 Google 帳號登入。"; }
-  else if (state.authorized) { $("#shareHeading").textContent = "雲端同步已連線"; $("#shareDescription").textContent = "把網址傳給已加入 members 的另一位編輯者。"; }
-  else { $("#shareHeading").textContent = "還差 Firestore 授權"; $("#shareDescription").textContent = "複製下方 UID，加入 boards/tohoku-2026/members 後即可使用。"; }
+  else if (state.authorized) { $("#shareHeading").textContent = "雲端同步已連線"; $("#shareDescription").textContent = "把網址傳給另一位已授權的旅伴即可共同編輯。"; }
+  else { $("#shareHeading").textContent = "還差 Firestore 授權"; $("#shareDescription").textContent = "目前登入的帳號尚未取得這趟旅程的共同編輯權限。"; }
   $("#shareDialog").showModal();
 }
 
@@ -255,22 +436,31 @@ async function connectFirebase() {
     const auth = authModule.getAuth(app); const db = firestoreModule.getFirestore(app);
     state.firebase = { auth,db,authModule,firestore:firestoreModule };
     authModule.onAuthStateChanged(auth, async (user) => {
-      state.user = user; state.authorized = false;
-      state.unsubscribe?.(); state.unsubscribe = null;
-      if (!user) { state.backend = "local"; state.resources = loadLocalResources(); setSyncStatus("local"); updateModeBanner(); renderResources(); return; }
+      state.user = user; state.authorized = false; state.resourceAuthorized = false; state.itineraryAuthorized = false;
+      state.unsubscribeResources?.(); state.unsubscribeResources = null;
+      state.unsubscribeItinerary?.(); state.unsubscribeItinerary = null;
+      if (!user) {
+        state.backend = "local";
+        state.resources = loadLocalResources();
+        state.itineraryItems = loadLocalItineraryItems();
+        setSyncStatus("local"); updateModeBanner(); renderResources(); renderItinerary();
+        if ($("#dayDialog").open) renderDayDetails();
+        return;
+      }
       $("#currentAvatar").textContent = initials(user.displayName || user.email || "我");
       listenToCloud(); updateModeBanner();
     });
-  } catch (error) { console.error(error); setSyncStatus("error"); showToast("Firebase 連線失敗"); }
+  } catch (error) { console.error(error); state.firebaseError = true; setSyncStatus("error"); showToast("Firebase 連線失敗"); }
 }
 
 function listenToCloud() {
   const f = state.firebase.firestore;
-  const ref = f.collection(state.firebase.db,"boards",BOARD_ID,"resources");
-  state.unsubscribe = f.onSnapshot(ref, async (snapshot) => {
-    state.authorized = true; state.backend = "cloud";
+  const resourceRef = f.collection(state.firebase.db,"boards",BOARD_ID,"resources");
+  const itineraryRef = f.collection(state.firebase.db,"boards",BOARD_ID,"itineraryItems");
+  state.unsubscribeResources = f.onSnapshot(resourceRef, async (snapshot) => {
+    state.resourceAuthorized = true; state.authorized = state.resourceAuthorized && state.itineraryAuthorized; state.backend = "cloud";
     state.resources = snapshot.docs.map((item) => ({ id:item.id,...item.data() }));
-    setSyncStatus("cloud"); updateModeBanner(); renderResources();
+    setSyncStatus(state.authorized ? "cloud" : "connecting"); updateModeBanner(); renderResources();
     if (snapshot.empty && !sessionStorage.getItem("trip-seeded")) {
       sessionStorage.setItem("trip-seeded","1");
       const localDrafts = loadLocalResources();
@@ -286,8 +476,21 @@ function listenToCloud() {
       )));
     }
   }, (error) => {
-    console.warn(error); state.authorized = false; state.backend = "local"; state.resources = loadLocalResources();
+    console.warn(error); state.resourceAuthorized = false; state.authorized = false; state.backend = "local"; state.resources = loadLocalResources();
     setSyncStatus(error.code === "permission-denied" ? "local" : "error"); updateModeBanner(); renderResources();
+  });
+
+  state.unsubscribeItinerary = f.onSnapshot(itineraryRef, (snapshot) => {
+    state.itineraryAuthorized = true; state.authorized = state.resourceAuthorized && state.itineraryAuthorized;
+    state.itineraryItems = snapshot.docs.map((item) => ({ id:item.id,...item.data() }));
+    setSyncStatus(state.authorized ? "cloud" : "connecting");
+    updateModeBanner(); renderItinerary();
+    if ($("#dayDialog").open) renderDayDetails();
+  }, (error) => {
+    console.warn(error); state.itineraryAuthorized = false; state.authorized = false; state.itineraryItems = [];
+    setSyncStatus("error"); updateModeBanner(); renderItinerary();
+    if ($("#dayDialog").open) renderDayDetails();
+    if (error.code === "permission-denied") showToast("行程功能尚未取得 Firebase 權限");
   });
 }
 
@@ -305,21 +508,63 @@ function firebaseConfigured() {
 function bindEvents() {
   $$('[data-tab]').forEach((button) => button.addEventListener("click", () => setTab(button.dataset.tab)));
   $("#brandButton").addEventListener("click", () => setTab("itinerary"));
+  $("#dayGrid").addEventListener("click", (event) => { const button = event.target.closest("[data-day]"); if (button) openDayDialog(button.dataset.day); });
+  document.addEventListener("click", (event) => {
+    const addButton = event.target.closest('[data-action="add-itinerary"]');
+    if (addButton) {
+      const fromDayDialog = Boolean(addButton.closest("#dayDialog"));
+      openItineraryEditor(null, fromDayDialog ? state.selectedDayKey : null);
+      return;
+    }
+    const editButton = event.target.closest("[data-itinerary-edit]");
+    if (editButton) openItineraryEditor(editButton.dataset.itineraryEdit);
+  });
   $$('[data-action="add"]').forEach((button) => button.addEventListener("click", () => openEditor()));
   $("#categoryRow").addEventListener("click", (event) => { const button = event.target.closest("[data-category]"); if (!button) return; state.category = button.dataset.category; renderCategories(); renderResources(); });
   $("#librarySearch").addEventListener("input", (event) => { state.query = event.target.value; event.target.nextElementSibling.hidden = !event.target.value; renderResources(); });
   $("#globalSearch").addEventListener("input", (event) => { event.target.nextElementSibling.hidden = !event.target.value; renderResources(); });
   $$(".clear-search").forEach((button) => button.addEventListener("click", () => { const input = button.previousElementSibling; input.value = ""; button.hidden = true; if (input.id === "librarySearch") state.query = ""; renderResources(); input.focus(); }));
   $("#resourceForm").addEventListener("submit", submitResource); $("#deleteButton").addEventListener("click", deleteCurrentResource);
+  $("#itineraryForm").addEventListener("submit", submitItineraryItem); $("#deleteItineraryButton").addEventListener("click", deleteCurrentItineraryItem);
   $("#resourceUrl").addEventListener("blur", () => { if ($("#resourceTitle").value || !$("#resourceUrl").value) return; try { $("#resourceTitle").value = new URL($("#resourceUrl").value).hostname.replace(/^www\./,""); } catch {} });
   $$('[data-close-dialog]').forEach((button) => button.addEventListener("click", () => document.getElementById(button.dataset.closeDialog).close()));
   $$('dialog').forEach((dialog) => dialog.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); }));
   $("#shareButton").addEventListener("click", openShareDialog); $("#copyShareUrl").addEventListener("click", () => copyText($("#shareUrl").value,"網站網址已複製"));
   $("#copyUid").addEventListener("click", () => copyText($("#userUid").textContent,"UID 已複製"));
   $("#googleSignIn").addEventListener("click", googleSignIn); $("#googleSignOut").addEventListener("click", async () => { await state.firebase?.authModule.signOut(state.firebase.auth); $("#shareDialog").close(); });
+  $("#dayDialog").addEventListener("close", () => {
+    const dateKey = state.selectedDayKey;
+    renderItinerary();
+    requestAnimationFrame(() => document.querySelector(`[data-day="${dateKey}"]`)?.focus());
+  });
 }
 
-function showToast(message) { $("#toastText").textContent = message; $("#toast").hidden = false; clearTimeout(showToast.timer); showToast.timer = setTimeout(() => { $("#toast").hidden = true; },3200); }
+function showToast(message) {
+  clearTimeout(showToast.timer);
+  $$(".dialog-toast").forEach((item) => item.remove());
+  const openDialog = $$('dialog[open]').at(-1);
+  if (openDialog) {
+    const feedback = document.createElement("div");
+    feedback.className = "dialog-toast";
+    feedback.setAttribute("role","status");
+    const icon = document.createElement("span");
+    icon.textContent = "✓";
+    const text = document.createElement("b");
+    text.textContent = message;
+    feedback.append(icon,text);
+    openDialog.append(feedback);
+    showToast.timer = setTimeout(() => feedback.remove(),3200);
+    return;
+  }
+  const toast = $("#toast");
+  $("#toastText").textContent = message;
+  toast.hidden = false;
+  if (typeof toast.showPopover === "function" && !toast.matches(":popover-open")) toast.showPopover();
+  showToast.timer = setTimeout(() => {
+    if (typeof toast.hidePopover === "function" && toast.matches(":popover-open")) toast.hidePopover();
+    toast.hidden = true;
+  },3200);
+}
 async function copyText(value,message) { try { await navigator.clipboard.writeText(value); showToast(message); } catch { showToast("請長按後手動複製"); } }
 function timestampValue(value) { if (typeof value === "number") return value; if (value?.toMillis) return value.toMillis(); if (value?.seconds) return value.seconds * 1000; return 0; }
 function safeHostname(value) { try { return new URL(value).hostname.replace(/^www\./,""); } catch { return value; } }
@@ -328,4 +573,5 @@ function escapeHtml(value) { return String(value ?? "").replace(/[&<>'"]/g,(char
 function escapeAttr(value) { return escapeHtml(value); }
 
 state.resources = loadLocalResources();
-renderItinerary(); renderCategories(); renderResources(); bindEvents(); updateModeBanner(); setTab("itinerary"); connectFirebase();
+state.itineraryItems = loadLocalItineraryItems();
+renderItinerary(); renderItineraryDateOptions(); renderCategories(); renderResources(); bindEvents(); updateModeBanner(); setTab("itinerary"); connectFirebase();
