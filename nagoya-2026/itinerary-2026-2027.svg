@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1180" viewBox="0 0 1600 1180" role="img" aria-labelledby="title desc">
+  <title id="title">日本東北雪旅 2026年12月19日至2027年1月3日</title>
+  <desc id="desc">從仙台經松島、八戶、青森、弘前、秋田、山形與藏王，12月30日下午搭山形新幹線前往東京的16日行程圖。</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#E8F6FF"/><stop offset=".52" stop-color="#F7F8FC"/><stop offset="1" stop-color="#F1ECFF"/></linearGradient>
+    <linearGradient id="hero" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#1379E8"/><stop offset="1" stop-color="#5757D8"/></linearGradient>
+    <linearGradient id="focus" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#007AFF"/><stop offset="1" stop-color="#30B8D8"/></linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-color="#53657A" flood-opacity=".14"/></filter>
+    <style>
+      text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC",sans-serif;fill:#111827}
+      .tiny{font-size:16px;font-weight:700;letter-spacing:2px;fill:#2675C9}.date{font-size:26px;font-weight:800}.weekday{font-size:15px;fill:#7B8492}.city{font-size:16px;font-weight:750}.title{font-size:20px;font-weight:800}.detail{font-size:15px;fill:#5E6878}.stay{font-size:13px;font-weight:700;fill:#2264A4}.white{fill:white}.mutedwhite{fill:#DDEEFF}.route{font-size:17px;font-weight:750;fill:#275D94}.footer{font-size:14px;fill:#667085}
+    </style>
+  </defs>
+  <rect width="1600" height="1180" rx="42" fill="url(#bg)"/>
+  <circle cx="1450" cy="85" r="170" fill="#64D2FF" opacity=".13"/><circle cx="135" cy="1125" r="210" fill="#8B7CF6" opacity=".11"/>
+
+  <g filter="url(#shadow)"><rect x="44" y="40" width="1512" height="212" rx="34" fill="url(#hero)"/></g>
+  <text x="86" y="89" class="tiny white">16 DAYS · 15 NIGHTS</text>
+  <text x="86" y="146" font-size="50" font-weight="850" letter-spacing="-2" class="white">日本東北雪旅</text>
+  <text x="88" y="190" font-size="23" font-weight="650" class="mutedwhite">2026.12.19 — 2027.01.03</text>
+  <rect x="1155" y="83" width="346" height="124" rx="26" fill="white" opacity=".14" stroke="white" stroke-opacity=".22"/>
+  <text x="1190" y="122" font-size="16" font-weight="700" class="mutedwhite">12/30 重要更新</text>
+  <text x="1190" y="157" font-size="24" font-weight="820" class="white">上午滑雪 → 晚上東京</text>
+  <text x="1190" y="187" font-size="15" class="mutedwhite">下午從山形搭 Tsubasa</text>
+
+  <g transform="translate(58 280)">
+    <path d="M34 42H1430" fill="none" stroke="#B7C9DD" stroke-width="7" stroke-linecap="round"/>
+    <g><circle cx="34" cy="42" r="13" fill="#FF9F0A"/><text x="34" y="82" text-anchor="middle" class="route">仙台</text></g>
+    <g><circle cx="220" cy="42" r="13" fill="#FF9F0A"/><text x="220" y="82" text-anchor="middle" class="route">松島</text></g>
+    <g><circle cx="418" cy="42" r="13" fill="#30B0C7"/><text x="418" y="82" text-anchor="middle" class="route">八戶</text></g>
+    <g><circle cx="602" cy="42" r="13" fill="#30B0C7"/><text x="602" y="82" text-anchor="middle" class="route">青森</text></g>
+    <g><circle cx="780" cy="42" r="13" fill="#30B0C7"/><text x="780" y="82" text-anchor="middle" class="route">弘前</text></g>
+    <g><circle cx="958" cy="42" r="13" fill="#9B72CF"/><text x="958" y="82" text-anchor="middle" class="route">秋田</text></g>
+    <g><circle cx="1135" cy="42" r="13" fill="#9B72CF"/><text x="1135" y="82" text-anchor="middle" class="route">山形</text></g>
+    <g><circle cx="1280" cy="42" r="16" fill="#007AFF" stroke="white" stroke-width="5"/><text x="1280" y="82" text-anchor="middle" class="route">藏王</text></g>
+    <g><circle cx="1430" cy="42" r="16" fill="#FF375F" stroke="white" stroke-width="5"/><text x="1430" y="82" text-anchor="middle" class="route">東京</text></g>
+  </g>
+
+  <!-- Row 1 -->
+  <g transform="translate(44 390)"><rect width="368" height="156" rx="24" fill="white" filter="url(#shadow)"/><rect width="6" height="112" y="22" rx="3" fill="#FF9F0A"/><text x="24" y="39" class="date">12/19</text><text x="112" y="37" class="weekday">週六 · 仙台</text><text x="24" y="77" class="title">抵達日本 → 仙台</text><text x="24" y="106" class="detail">入住、暖身散步、吃牛舌</text><text x="24" y="136" class="stay">住｜仙台 ①</text></g>
+  <g transform="translate(425 390)"><rect width="368" height="156" rx="24" fill="white" filter="url(#shadow)"/><rect width="6" height="112" y="22" rx="3" fill="#FF9F0A"/><text x="24" y="39" class="date">12/20</text><text x="112" y="37" class="weekday">週日 · 仙台</text><text x="24" y="77" class="title">仙台經典一日</text><text x="24" y="106" class="detail">瑞鳳殿 · 仙台城跡 · 大崎八幡宮</text><text x="24" y="136" class="stay">住｜仙台 ②</text></g>
+  <g transform="translate(806 390)"><rect width="368" height="156" rx="24" fill="white" filter="url(#shadow)"/><rect width="6" height="112" y="22" rx="3" fill="#FF9F0A"/><text x="24" y="39" class="date">12/21</text><text x="112" y="37" class="weekday">週一 · 松島</text><text x="24" y="77" class="title">日本三景・松島</text><text x="24" y="106" class="detail">瑞巖寺 · 五大堂 · 圓通院 · 遊船</text><text x="24" y="136" class="stay">住｜仙台 ③</text></g>
+  <g transform="translate(1187 390)"><rect width="368" height="156" rx="24" fill="white" filter="url(#shadow)"/><rect width="6" height="112" y="22" rx="3" fill="#30B0C7"/><text x="24" y="39" class="date">12/22</text><text x="112" y="37" class="weekday">週二 · 八戶</text><text x="24" y="77" class="title">港町海鮮日</text><text x="24" y="106" class="detail">陸奧湊朝市 · 八食中心</text><text x="24" y="136" class="stay">住｜八戶</text></g>
+
+  <!-- Row 2 -->
+  <g transform="translate(44 560)"><rect width="368" height="156" rx="24" fill="white" filter="url(#shadow)"/><rect width="6" height="112" y="22" rx="3" fill="#30B0C7"/><text x="24" y="39" class="date">12/23</text><text x="112" y="37" class="weekday">週三 · 青森</text><text x="24" y="77" class="title">遺跡與青森藝術</text><text x="24" y="106" class="detail">三內丸山 · 青森縣立美術館</text><text x="24" y="136" class="stay">住｜青森</text></g>
+  <g transform="translate(425 560)"><rect width="368" height="156" rx="24" fill="white" filter="url(#shadow)"/><rect width="6" height="112" y="22" rx="3" fill="#30B0C7"/><text x="24" y="39" class="date">12/24</text><text x="112" y="37" class="weekday">週四 · 青森 → 弘前</text><text x="24" y="77" class="title">睡魔與青森灣</text><text x="24" y="106" class="detail">WA RASSE · A-FACTORY</text><text x="24" y="136" class="stay">住｜弘前 ①</text></g>
+  <g transform="translate(806 560)"><rect width="368" height="156" rx="24" fill="white" filter="url(#shadow)"/><rect width="6" height="112" y="22" rx="3" fill="#30B0C7"/><text x="24" y="39" class="date">12/25</text><text x="112" y="37" class="weekday">週五 · 弘前</text><text x="24" y="77" class="title">弘前城下町</text><text x="24" y="106" class="detail">弘前公園 · 睡魔村 · 蘋果派</text><text x="24" y="136" class="stay">住｜弘前 ②</text></g>
+  <g transform="translate(1187 560)"><rect width="368" height="156" rx="24" fill="white" filter="url(#shadow)"/><rect width="6" height="112" y="22" rx="3" fill="#9B72CF"/><text x="24" y="39" class="date">12/26</text><text x="112" y="37" class="weekday">週六 · 五能線</text><text x="24" y="77" class="title">Resort Shirakami 2號</text><text x="24" y="106" class="detail">弘前 08:48 → 秋田 13:29</text><text x="24" y="136" class="stay">住｜秋田 · 全車指定席</text></g>
+
+  <!-- Row 3 -->
+  <g transform="translate(44 730)"><rect width="368" height="156" rx="24" fill="white" filter="url(#shadow)"/><rect width="6" height="112" y="22" rx="3" fill="#9B72CF"/><text x="24" y="39" class="date">12/27</text><text x="112" y="37" class="weekday">週日 · 山形</text><text x="24" y="77" class="title">移動到山形</text><text x="24" y="106" class="detail">霞城公園 · 文翔館 · 七日町</text><text x="24" y="136" class="stay">住｜山形</text></g>
+  <g transform="translate(425 730)"><rect width="368" height="156" rx="24" fill="white" filter="url(#shadow)"/><rect width="6" height="112" y="22" rx="3" fill="#007AFF"/><text x="24" y="39" class="date">12/28</text><text x="112" y="37" class="weekday">週一 · 藏王</text><text x="24" y="77" class="title">第一班巴士上山</text><text x="24" y="106" class="detail">約 07:00 出發 · 寄行李 · 滑雪</text><text x="24" y="136" class="stay">住｜藏王 ①</text></g>
+  <g transform="translate(806 730)"><rect width="368" height="156" rx="24" fill="white" filter="url(#shadow)"/><rect width="6" height="112" y="22" rx="3" fill="#007AFF"/><text x="24" y="39" class="date">12/29</text><text x="112" y="37" class="weekday">週二 · 藏王</text><text x="24" y="77" class="title">藏王全天滑雪</text><text x="24" y="106" class="detail">纜車看樹冰 · 溫泉</text><text x="24" y="136" class="stay">住｜藏王 ②</text></g>
+  <g transform="translate(1187 730)"><rect width="368" height="156" rx="24" fill="url(#focus)" filter="url(#shadow)"/><text x="24" y="39" class="date white">12/30</text><text x="112" y="37" class="weekday mutedwhite">週三 · 藏王 → 東京</text><text x="24" y="77" class="title white">上午滑雪 → 下午新幹線</text><text x="24" y="106" class="detail mutedwhite">13:20 巴士基準 · Tsubasa 進東京</text><text x="24" y="136" class="stay white">18:36–18:56 抵達 · 住東京 ①</text></g>
+
+  <!-- Row 4 -->
+  <g transform="translate(44 900)"><rect width="368" height="156" rx="24" fill="white" filter="url(#shadow)"/><rect width="6" height="112" y="22" rx="3" fill="#FF375F"/><text x="24" y="39" class="date">12/31</text><text x="112" y="37" class="weekday">週四 · 東京</text><text x="24" y="77" class="title">東京東側戶外日</text><text x="24" y="106" class="detail">淺草寺 · 隅田川 · 晴空塔</text><text x="24" y="136" class="stay">住｜東京 ②</text></g>
+  <g transform="translate(425 900)"><rect width="368" height="156" rx="24" fill="white" filter="url(#shadow)"/><rect width="6" height="112" y="22" rx="3" fill="#FF375F"/><text x="24" y="39" class="date">1/1</text><text x="90" y="37" class="weekday">週五 · 東京</text><text x="24" y="77" class="title">新年初詣</text><text x="24" y="106" class="detail">明治神宮 · 原宿 · 表參道 · 澀谷</text><text x="24" y="136" class="stay">住｜東京 ③</text></g>
+  <g transform="translate(806 900)"><rect width="368" height="156" rx="24" fill="white" filter="url(#shadow)"/><rect width="6" height="112" y="22" rx="3" fill="#FF375F"/><text x="24" y="39" class="date">1/2</text><text x="90" y="37" class="weekday">週六 · 東京</text><text x="24" y="77" class="title">皇居新年一般參賀</text><text x="24" y="106" class="detail">丸之內 · 銀座初賣</text><text x="24" y="136" class="stay">住｜東京 ④ · 待官方確認</text></g>
+  <g transform="translate(1187 900)"><rect width="368" height="156" rx="24" fill="white" filter="url(#shadow)"/><rect width="6" height="112" y="22" rx="3" fill="#FF375F"/><text x="24" y="39" class="date">1/3</text><text x="90" y="37" class="weekday">週日 · 東京</text><text x="24" y="77" class="title">自由行／返程</text><text x="24" y="106" class="detail">依航班安排採買與前往機場</text><text x="24" y="136" class="stay">16 天旅程完成</text></g>
+
+  <g transform="translate(58 1100)"><circle cx="9" cy="-4" r="7" fill="#007AFF"/><text x="28" y="1" class="footer">12/30 年末尖峰：Tsubasa 全車指定席，建議 11/30 日本時間 10:00 開賣即訂。</text><text x="28" y="28" class="footer">藏王巴士與新幹線為 2026/7 規劃基準；最終冬季時刻、晴空塔年末營業與 1/2 皇居活動請在官方公告後複核。</text></g>
+</svg>
