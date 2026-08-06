@@ -15,11 +15,11 @@ const categories = [
 const itinerary = [
   { date:"9/20",day:"日",city:"名古屋",title:"抵達日本・JX838",detail:"搭乘星宇航空 JX838 抵達名古屋；前往 Central Nagoya Stays 辦理入住。",transport:"中部國際機場 → 名古屋市區",stay:"Central Nagoya Stays",tone:"sendai" },
   { date:"9/21",day:"一",city:"名古屋",title:"預留：自由安排行程",detail:"全天保留，可加入景點、餐廳或比賽前的交通踩點。",stay:"Central Nagoya Stays",tone:"north" },
-  { date:"9/22",day:"二",city:"東海市",title:"女子卡巴迪・KAB04",detail:"16:00 中華台北女子隊出賽，請預留前往場館與入場時間。",transport:"名古屋 → 東海市民體育館",stay:"Central Nagoya Stays",tone:"match",notice:"場地：東海市民體育館（Masugata-1-1 Takayokosukamachi, Tokai）" },
-  { date:"9/23",day:"三",city:"東海市",title:"女子卡巴迪・KAB06",detail:"16:00 中華台北女子隊出賽，請預留前往場館與入場時間。",transport:"名古屋 → 東海市民體育館",stay:"Central Nagoya Stays",tone:"match" },
-  { date:"9/24",day:"四",city:"東海市",title:"女子卡巴迪・KAB07",detail:"09:30 中華台北女子隊出賽；下午可自行加入行程。",transport:"名古屋 → 東海市民體育館",stay:"Central Nagoya Stays",tone:"match" },
-  { date:"9/25",day:"五",city:"東海市",title:"女子卡巴迪・KAB09／KAB10",detail:"13:00 與 18:00 中華台北女子隊出賽；中間時段建議留在場館周邊。",transport:"名古屋 → 東海市民體育館",stay:"Central Nagoya Stays",tone:"match",notice:"一天兩場，請確認入場與休息安排。" },
-  { date:"9/26",day:"六",city:"東海市",title:"女子卡巴迪・KAB11",detail:"13:00 中華台北女子隊出賽；其餘時間保留。",transport:"名古屋 → 東海市民體育館",stay:"Central Nagoya Stays",tone:"match" },
+  { date:"9/22",day:"二",city:"東海市",title:"女子卡巴迪・KAB04",detail:"16:00 女子 B 組：斯里蘭卡 vs. 中華台北。",transport:"名古屋 → 東海市民體育館",stay:"Central Nagoya Stays",tone:"match",notice:"場地：東海市民體育館（Masugata-1-1 Takayokosukamachi, Tokai）" },
+  { date:"9/23",day:"三",city:"東海市",title:"女子卡巴迪・KAB06",detail:"16:00 女子 B 組：中華台北 vs. 尼泊爾。",transport:"名古屋 → 東海市民體育館",stay:"Central Nagoya Stays",tone:"match" },
+  { date:"9/24",day:"四",city:"東海市",title:"女子卡巴迪・KAB07",detail:"09:30 女子 B 組：泰國 vs. 中華台北；下午可自行加入行程。",transport:"名古屋 → 東海市民體育館",stay:"Central Nagoya Stays",tone:"match" },
+  { date:"9/25",day:"五",city:"東海市",title:"女子卡巴迪・KAB09／KAB10",detail:"13:00 與 18:00 為女子準決賽兩場；中華台北若晉級，將在其中一場出賽。",transport:"名古屋 → 東海市民體育館",stay:"Central Nagoya Stays",tone:"match",notice:"一天兩場，請確認中華台北所屬場次與入場安排。" },
+  { date:"9/26",day:"六",city:"東海市",title:"女子卡巴迪・KAB11",detail:"13:00 女子決賽；若中華台北與印度皆晉級，可能是中華台北 vs. 印度。",transport:"名古屋 → 東海市民體育館",stay:"Central Nagoya Stays",tone:"match",notice:"決賽對戰組合取決於準決賽結果。" },
   { date:"9/27",day:"日",city:"名古屋",title:"預留：自由安排行程",detail:"全天保留，可加入名古屋市區或近郊計畫。",stay:"Central Nagoya Stays",tone:"west" },
   { date:"9/28",day:"一",city:"名古屋",title:"預留：自由安排行程",detail:"全天保留，可加入想去的景點、餐廳與交通安排。",stay:"Central Nagoya Stays",tone:"west" },
   { date:"9/29",day:"二",city:"名古屋",title:"預留：自由安排行程",detail:"回程前最後一個完整自由日。",stay:"Central Nagoya Stays",tone:"tokyo" },
@@ -29,6 +29,7 @@ const seedResources = [
   { id:"venue-map",categoryId:"match",title:"東海市民體育館｜比賽場地地圖",url:"https://www.google.com/maps/search/?api=1&query=Tokai+City+Gymnasium+Masugata-1-1+Takayokosukamachi+Tokai+Aichi",note:"女子卡巴迪賽事場地：Masugata-1-1 Takayokosukamachi, Tokai, Aichi 477-0037。",location:"東海市",status:"booked",pinned:true,updatedBy:"行程整理",updatedAt:Date.now()-3000 },
   { id:"stay-map",categoryId:"stay",title:"Central Nagoya Stays｜住宿地圖",url:"https://www.google.com/maps/search/?api=1&query=Central+Nagoya+Stays+1+Chome-28-8+Wakamiyacho+Nakamura+Ward+Nagoya",note:"1 Chome-28-8 Wakamiyacho, Nakamura Ward, Nagoya, Aichi 453-0023。",location:"名古屋",status:"booked",pinned:true,updatedBy:"行程整理",updatedAt:Date.now()-2000 },
   { id:"games-site",categoryId:"match",title:"愛知・名古屋 2026 亞運官方網站",url:"https://www.aichi-nagoya2026.org/",note:"賽程、場館資訊與重要公告請以官方更新為準。",location:"愛知・名古屋",status:"shortlist",pinned:true,updatedBy:"行程整理",updatedAt:Date.now()-1000 },
+  { id:"schedule-reference",categoryId:"match",title:"女子卡巴迪完整賽程表（附原始圖片）",url:"./kabaddi-schedule.html",note:"中華台北女子隊 B 組：斯里蘭卡、尼泊爾、泰國；附上 9/21–9/26 全賽程與淘汰賽時段。",location:"東海市民體育館",status:"shortlist",pinned:true,updatedBy:"行程整理",updatedAt:Date.now() },
 ];
 const state = {
   tab: "itinerary",
@@ -560,7 +561,7 @@ function showToast(message) {
 }
 async function copyText(value,message) { try { await navigator.clipboard.writeText(value); showToast(message); } catch { showToast("請長按後手動複製"); } }
 function timestampValue(value) { if (typeof value === "number") return value; if (value?.toMillis) return value.toMillis(); if (value?.seconds) return value.seconds * 1000; return 0; }
-function safeHostname(value) { try { return new URL(value).hostname.replace(/^www\./,""); } catch { return value; } }
+function safeHostname(value) { if (String(value).startsWith("./")) return "網站內參考資料"; try { return new URL(value).hostname.replace(/^www\./,""); } catch { return value; } }
 function initials(value) { const text = String(value || "我").trim(); const parts = text.split(/\s+/); return (parts.length > 1 ? `${parts[0][0]}${parts.at(-1)[0]}` : text.slice(0,2)).toUpperCase(); }
 function escapeHtml(value) { return String(value ?? "").replace(/[&<>'"]/g,(char) => ({ "&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;" })[char]); }
 function escapeAttr(value) { return escapeHtml(value); }
