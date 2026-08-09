@@ -8,7 +8,6 @@
   <meta name="description" content="2026 名古屋亞運女子卡巴迪之旅：每日行程、比賽與旅遊資料庫">
   <title>名古屋・卡巴迪之旅 2026</title>
   <link rel="stylesheet" href="./styles.css">
-  <script src="./firebase-config.js"></script>
 </head>
 <body>
   <main class="app-shell">
@@ -24,18 +23,10 @@
         <button type="button" data-tab="search">搜尋</button>
       </nav>
 
-      <div class="collaborators">
+      <div class="collaborators" aria-label="編輯方式">
         <span class="sync-dot local" id="syncDot" aria-hidden="true"></span>
-        <span id="syncLabel" aria-live="polite">本機草稿</span>
-        <div class="avatar-stack" aria-label="共同編輯者">
-          <span class="avatar avatar-a" id="currentAvatar">我</span>
-          <span class="avatar avatar-b">＋</span>
-        </div>
-        <button class="icon-button" id="shareButton" type="button" aria-label="分享與共同編輯">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12M7.5 7.5 12 3l4.5 4.5M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg>
-        </button>
-      </div>
-    </header>
+        <span id="syncLabel" aria-live="polite">可直接編輯</span>
+      </div>    </header>
 
     <div class="page-wrap">
       <section id="itineraryView" class="view active" aria-labelledby="tripTitle">
@@ -80,11 +71,9 @@
           <button class="add-button" type="button" data-action="add"><span>＋</span> 新增連結</button>
         </div>
         <div class="mode-banner local" id="modeBanner">
-          <span class="banner-icon">i</span>
-          <div><strong>目前是本機草稿</strong><p>資料只存在這台裝置。連接 Firebase 後才會與女朋友即時同步。</p></div>
-          <button type="button" id="modeAction">查看設定</button>
-        </div>
-        <label class="search-field" for="librarySearch">
+          <span class="banner-icon">✎</span>
+          <div><strong>任何人都可以直接編輯</strong><p>不需登入；新增或修改的內容會儲存在你目前使用的瀏覽器。</p></div>
+        </div>        <label class="search-field" for="librarySearch">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
           <input id="librarySearch" type="search" placeholder="搜尋住宿、滑雪、城市或備註" autocomplete="off">
           <button class="clear-search" type="button" aria-label="清除搜尋" hidden>×</button>
@@ -163,7 +152,7 @@
           <label><span>地點</span><input id="itineraryLocation" name="location" maxlength="120" placeholder="車站、餐廳或景點"></label>
         </div>
         <label><span>注意事項</span><textarea id="itineraryNotes" name="notes" maxlength="2000" rows="5" placeholder="票券、集合方式、交通備案或其他提醒…"></textarea></label>
-        <p class="form-sync-note" id="itinerarySyncNote">登入後，這筆行程會即時同步給兩個人。</p>
+        <p class="form-sync-note" id="itinerarySyncNote">任何人可直接編輯；變更只會儲存在此瀏覽器。</p>
         <button class="delete-button" id="deleteItineraryButton" type="button" hidden>刪除這筆行程</button>
       </div>
     </form>
@@ -196,37 +185,6 @@
     </form>
   </dialog>
 
-  <dialog class="sheet compact-sheet" id="shareDialog" aria-labelledby="shareTitle">
-    <div class="sheet-shell">
-      <div class="sheet-grabber" aria-hidden="true"></div>
-      <header class="sheet-header"><button type="button" data-close-dialog="shareDialog">完成</button><h2 id="shareTitle">共同編輯</h2><span></span></header>
-      <div class="share-content">
-        <div class="share-visual"><span class="avatar avatar-a">我</span><span></span><span class="avatar avatar-b">她</span></div>
-        <h3 id="shareHeading">分享這趟旅行</h3>
-        <p id="shareDescription">把網站網址傳給女朋友。</p>
-        <div class="share-url"><input id="shareUrl" readonly aria-label="網站網址"><button id="copyShareUrl" type="button">複製</button></div>
-        <button class="google-button" id="googleSignIn" type="button" hidden>
-          <span aria-hidden="true">G</span>使用 Google 登入共同資料庫
-        </button>
-        <button class="secondary-button wide-button" id="googleSignOut" type="button" hidden>登出 Google</button>
-        <div class="uid-card" id="uidCard" hidden><p>你的 Firebase UID</p><code id="userUid"></code><button id="copyUid" type="button">複製 UID</button></div>
-      </div>
-    </div>
-  </dialog>
-
-  <dialog class="sheet compact-sheet" id="setupDialog" aria-labelledby="setupTitle">
-    <div class="sheet-shell">
-      <div class="sheet-grabber" aria-hidden="true"></div>
-      <header class="sheet-header"><button type="button" data-close-dialog="setupDialog">完成</button><h2 id="setupTitle">雲端同步設定</h2><span></span></header>
-      <div class="share-content setup-content">
-        <span class="setup-icon">☁</span>
-        <h3>還差 Firebase 連線</h3>
-        <p>目前新增的資料只存在這個瀏覽器。完成 Firebase 設定後，兩人登入 Google 就能即時看到同一份內容。</p>
-        <ol><li>建立 Firebase Web App 與 Firestore。</li><li>啟用 Google 登入。</li><li>把 Web config 填進 <code>firebase-config.js</code>。</li><li>部署附帶的 Firestore Security Rules。</li></ol>
-        <a class="primary-button wide-button" href="https://console.firebase.google.com/" target="_blank" rel="noreferrer">開啟 Firebase Console</a>
-      </div>
-    </div>
-  </dialog>
 
   <div class="toast" id="toast" role="status" popover="manual" hidden><span>✓</span><b id="toastText"></b></div>
   <script type="module" src="./app.js"></script>

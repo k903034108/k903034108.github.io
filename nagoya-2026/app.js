@@ -1,4 +1,3 @@
-const FIREBASE_VERSION = "12.15.0";
 const STORAGE_KEY = "nagoya-2026-resources-v1";
 const ITINERARY_STORAGE_KEY = "nagoya-2026-itinerary-items-v1";
 const BOARD_ID = window.TRIP_BOARD_ID || "nagoya-2026";
@@ -270,14 +269,7 @@ async function deleteCurrentResource() {
   } catch (error) { console.error(error); setSyncStatus("error"); showToast("暫時無法刪除"); }
 }
 
-function canOpenItineraryEditor() {
-  if (!firebaseConfigured()) return true;
-  if (state.firebaseError) { showToast("Firebase 目前連線失敗，請重新整理後再試"); return false; }
-  if (state.user && state.itineraryAuthorized) return true;
-  openShareDialog();
-  showToast(state.user ? "行程同步權限尚未就緒" : "請先登入再共同編輯行程");
-  return false;
-}
+function canOpenItineraryEditor() { return true; }
 
 function openItineraryEditor(id = null, dateKey = null) {
   if (!canOpenItineraryEditor()) return;
@@ -287,7 +279,7 @@ function openItineraryEditor(id = null, dateKey = null) {
   renderItineraryDateOptions();
   $("#itineraryEditorTitle").textContent = id ? "編輯行程" : "新增行程";
   $("#deleteItineraryButton").hidden = !id;
-  $("#itinerarySyncNote").textContent = firebaseConfigured() ? "儲存後會即時同步給兩個人。" : "目前會先儲存在這台裝置。";
+  $("#itinerarySyncNote").textContent = false ? "儲存後會即時同步給兩個人。" : "任何人可直接編輯；變更只會儲存在此瀏覽器。";
   form.elements.date.value = dateKey || itineraryDateKey(itinerary[0]);
 
   if (id) {
@@ -320,7 +312,7 @@ async function submitItineraryItem(event) {
   const personName = currentUserName();
   setSyncStatus("saving");
   try {
-    if (firebaseConfigured()) {
+    if (false) {
       const { collection,addDoc,doc,updateDoc,serverTimestamp } = state.firebase.firestore;
       const updatedFields = { ...input,updatedByUid:state.user.uid,updatedByName:personName,updatedAt:serverTimestamp() };
       if (current) {
@@ -357,7 +349,7 @@ async function deleteCurrentItineraryItem() {
   if (!item || !confirm(`確定要刪除「${item.title}」嗎？`)) return;
   setSyncStatus("saving");
   try {
-    if (firebaseConfigured()) {
+    if (false) {
       if (!state.itineraryAuthorized) throw Object.assign(new Error("permission denied"),{ code:"permission-denied" });
       const { doc,deleteDoc } = state.firebase.firestore;
       await deleteDoc(doc(state.firebase.db,"boards",BOARD_ID,"itineraryItems",item.id));
@@ -383,7 +375,7 @@ function currentUserName() {
 
 function setSyncStatus(mode) {
   const dot = $("#syncDot"); dot.className = "sync-dot";
-  if (mode === "local") { dot.classList.add("local"); $("#syncLabel").textContent = "本機草稿"; }
+  if (mode === "local") { dot.classList.add("local"); $("#syncLabel").textContent = "本機儲存"; }
   if (mode === "saving") { dot.classList.add("saving"); $("#syncLabel").textContent = "正在儲存…"; }
   if (mode === "connecting") { dot.classList.add("saving"); $("#syncLabel").textContent = "同步連線中…"; }
   if (mode === "cloud") { $("#syncLabel").textContent = "已即時同步"; }
@@ -392,113 +384,10 @@ function setSyncStatus(mode) {
 
 function updateModeBanner() {
   const banner = $("#modeBanner");
-  if (state.backend === "cloud" && state.authorized) {
-    banner.className = "mode-banner cloud"; banner.innerHTML = `<span class="banner-icon">✓</span><div><strong>Firebase 即時同步已連線</strong><p>你和女朋友會看到同一份資料。</p></div><button type="button" id="modeAction">帳號資訊</button>`;
-  } else if (firebaseConfigured() && state.user) {
-    banner.className = "mode-banner local"; banner.innerHTML = `<span class="banner-icon">!</span><div><strong>已登入，等待資料庫授權</strong><p>請確認目前登入的是這趟旅程已授權的帳號。</p></div><button type="button" id="modeAction">查看 UID</button>`;
-  } else if (firebaseConfigured()) {
-    banner.className = "mode-banner local"; banner.innerHTML = `<span class="banner-icon">G</span><div><strong>雲端已設定，請先登入</strong><p>使用 Google 帳號登入共同資料庫。</p></div><button type="button" id="modeAction">登入</button>`;
-  } else {
-    banner.className = "mode-banner local"; banner.innerHTML = `<span class="banner-icon">i</span><div><strong>目前是本機草稿</strong><p>資料只存在這台裝置。連接 Firebase 後才會與女朋友即時同步。</p></div><button type="button" id="modeAction">查看設定</button>`;
-  }
-  $("#modeAction").addEventListener("click", () => firebaseConfigured() ? openShareDialog() : $("#setupDialog").showModal());
+  if (!banner) return;
+  banner.className = "mode-banner local";
+  banner.innerHTML = `<span class="banner-icon">✎</span><div><strong>任何人都可以直接編輯</strong><p>不需登入；新增或修改的內容會儲存在你目前使用的瀏覽器。</p></div>`;
 }
-
-function openShareDialog() {
-  const configured = firebaseConfigured();
-  $("#shareUrl").value = location.href.split("#")[0];
-  $("#googleSignIn").hidden = !configured || Boolean(state.user);
-  $("#googleSignOut").hidden = !state.user;
-  $("#uidCard").hidden = !state.user;
-  if (state.user) { $("#userUid").textContent = state.user.uid; $("#currentAvatar").textContent = initials(state.user.displayName || state.user.email || "我"); }
-  if (!configured) { $("#shareHeading").textContent = "分享行程頁面"; $("#shareDescription").textContent = "目前新增內容只存於這台裝置；設定 Firebase 後才是共同編輯。"; }
-  else if (!state.user) { $("#shareHeading").textContent = "登入共同資料庫"; $("#shareDescription").textContent = "你和女朋友各自使用 Google 帳號登入。"; }
-  else if (state.authorized) { $("#shareHeading").textContent = "雲端同步已連線"; $("#shareDescription").textContent = "把網址傳給另一位已授權的旅伴即可共同編輯。"; }
-  else { $("#shareHeading").textContent = "還差 Firestore 授權"; $("#shareDescription").textContent = "目前登入的帳號尚未取得這趟旅程的共同編輯權限。"; }
-  $("#shareDialog").showModal();
-}
-
-async function connectFirebase() {
-  if (!firebaseConfigured()) { updateModeBanner(); return; }
-  try {
-    const [appModule,authModule,firestoreModule] = await Promise.all([
-      import(`https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-app.js`),
-      import(`https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-auth.js`),
-      import(`https://www.gstatic.com/firebasejs/${FIREBASE_VERSION}/firebase-firestore.js`),
-    ]);
-    const app = appModule.initializeApp(window.TRIP_FIREBASE_CONFIG);
-    const auth = authModule.getAuth(app); const db = firestoreModule.getFirestore(app);
-    state.firebase = { auth,db,authModule,firestore:firestoreModule };
-    authModule.onAuthStateChanged(auth, async (user) => {
-      state.user = user; state.authorized = false; state.resourceAuthorized = false; state.itineraryAuthorized = false;
-      state.unsubscribeResources?.(); state.unsubscribeResources = null;
-      state.unsubscribeItinerary?.(); state.unsubscribeItinerary = null;
-      if (!user) {
-        state.backend = "local";
-        state.resources = loadLocalResources();
-        state.itineraryItems = loadLocalItineraryItems();
-        setSyncStatus("local"); updateModeBanner(); renderResources(); renderItinerary();
-        if ($("#dayDialog").open) renderDayDetails();
-        return;
-      }
-      $("#currentAvatar").textContent = initials(user.displayName || user.email || "我");
-      listenToCloud(); updateModeBanner();
-    });
-  } catch (error) { console.error(error); state.firebaseError = true; setSyncStatus("error"); showToast("Firebase 連線失敗"); }
-}
-
-function listenToCloud() {
-  const f = state.firebase.firestore;
-  const resourceRef = f.collection(state.firebase.db,"boards",BOARD_ID,"resources");
-  const itineraryRef = f.collection(state.firebase.db,"boards",BOARD_ID,"itineraryItems");
-  state.unsubscribeResources = f.onSnapshot(resourceRef, async (snapshot) => {
-    state.resourceAuthorized = true; state.authorized = state.resourceAuthorized && state.itineraryAuthorized; state.backend = "cloud";
-    state.resources = snapshot.docs.map((item) => ({ id:item.id,...item.data() }));
-    setSyncStatus(state.authorized ? "cloud" : "connecting"); updateModeBanner(); renderResources();
-    if (snapshot.empty && !sessionStorage.getItem("trip-seeded")) {
-      sessionStorage.setItem("trip-seeded","1");
-      const localDrafts = loadLocalResources();
-      await Promise.all(localDrafts.map((resource) => f.setDoc(
-        f.doc(state.firebase.db,"boards",BOARD_ID,"resources",resource.id),
-        {
-          ...resource,
-          createdAt:f.serverTimestamp(),
-          updatedAt:f.serverTimestamp(),
-          createdBy:resource.createdBy || resource.updatedBy || "旅伴",
-          updatedBy:resource.updatedBy || "旅伴",
-        },
-      )));
-    }
-  }, (error) => {
-    console.warn(error); state.resourceAuthorized = false; state.authorized = false; state.backend = "local"; state.resources = loadLocalResources();
-    setSyncStatus(error.code === "permission-denied" ? "local" : "error"); updateModeBanner(); renderResources();
-  });
-
-  state.unsubscribeItinerary = f.onSnapshot(itineraryRef, (snapshot) => {
-    state.itineraryAuthorized = true; state.authorized = state.resourceAuthorized && state.itineraryAuthorized;
-    state.itineraryItems = snapshot.docs.map((item) => ({ id:item.id,...item.data() }));
-    setSyncStatus(state.authorized ? "cloud" : "connecting");
-    updateModeBanner(); renderItinerary();
-    if ($("#dayDialog").open) renderDayDetails();
-  }, (error) => {
-    console.warn(error); state.itineraryAuthorized = false; state.authorized = false; state.itineraryItems = [];
-    setSyncStatus("error"); updateModeBanner(); renderItinerary();
-    if ($("#dayDialog").open) renderDayDetails();
-    if (error.code === "permission-denied") showToast("行程功能尚未取得 Firebase 權限");
-  });
-}
-
-async function googleSignIn() {
-  if (!state.firebase) return;
-  try { const provider = new state.firebase.authModule.GoogleAuthProvider(); await state.firebase.authModule.signInWithPopup(state.firebase.auth,provider); $("#shareDialog").close(); }
-  catch (error) { console.error(error); showToast("Google 登入未完成"); }
-}
-
-function firebaseConfigured() {
-  const config = window.TRIP_FIREBASE_CONFIG;
-  return Boolean(config && ["apiKey","authDomain","projectId","appId","messagingSenderId"].every((key) => typeof config[key] === "string" && config[key]));
-}
-
 function bindEvents() {
   $$('[data-tab]').forEach((button) => button.addEventListener("click", () => setTab(button.dataset.tab)));
   $("#brandButton").addEventListener("click", () => setTab("itinerary"));
@@ -523,9 +412,6 @@ function bindEvents() {
   $("#resourceUrl").addEventListener("blur", () => { if ($("#resourceTitle").value || !$("#resourceUrl").value) return; try { $("#resourceTitle").value = new URL($("#resourceUrl").value).hostname.replace(/^www\./,""); } catch {} });
   $$('[data-close-dialog]').forEach((button) => button.addEventListener("click", () => document.getElementById(button.dataset.closeDialog).close()));
   $$('dialog').forEach((dialog) => dialog.addEventListener("click", (event) => { if (event.target === dialog) dialog.close(); }));
-  $("#shareButton").addEventListener("click", openShareDialog); $("#copyShareUrl").addEventListener("click", () => copyText($("#shareUrl").value,"網站網址已複製"));
-  $("#copyUid").addEventListener("click", () => copyText($("#userUid").textContent,"UID 已複製"));
-  $("#googleSignIn").addEventListener("click", googleSignIn); $("#googleSignOut").addEventListener("click", async () => { await state.firebase?.authModule.signOut(state.firebase.auth); $("#shareDialog").close(); });
   $("#dayDialog").addEventListener("close", () => {
     const dateKey = state.selectedDayKey;
     renderItinerary();
@@ -568,4 +454,4 @@ function escapeAttr(value) { return escapeHtml(value); }
 
 state.resources = loadLocalResources();
 state.itineraryItems = loadLocalItineraryItems();
-renderItinerary(); renderItineraryDateOptions(); renderCategories(); renderResources(); bindEvents(); updateModeBanner(); setTab("itinerary"); connectFirebase();
+renderItinerary(); renderItineraryDateOptions(); renderCategories(); renderResources(); bindEvents(); updateModeBanner(); setTab("itinerary");
