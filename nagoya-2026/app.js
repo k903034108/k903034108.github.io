@@ -12,16 +12,16 @@ const categories = [
 ];
 
 const itinerary = [
-  { date:"9/20",day:"日",city:"名古屋",title:"抵達日本・JX838",detail:"搭乘星宇航空 JX838 抵達名古屋；前往 Central Nagoya Stays 辦理入住。",transport:"中部國際機場 → 名古屋市區",stay:"Central Nagoya Stays",tone:"sendai" },
-  { date:"9/21",day:"一",city:"名古屋",title:"預留：自由安排行程",detail:"全天保留，可加入景點、餐廳或比賽前的交通踩點。",stay:"Central Nagoya Stays",tone:"north" },
-  { date:"9/22",day:"二",city:"東海市",title:"女子卡巴迪・KAB04",detail:"16:00 女子 B 組：斯里蘭卡 vs. 中華台北。",transport:"名古屋 → 東海市民體育館",stay:"Central Nagoya Stays",tone:"match",notice:"場地：東海市民體育館（Masugata-1-1 Takayokosukamachi, Tokai）" },
-  { date:"9/23",day:"三",city:"東海市",title:"女子卡巴迪・KAB06",detail:"16:00 女子 B 組：中華台北 vs. 尼泊爾。",transport:"名古屋 → 東海市民體育館",stay:"Central Nagoya Stays",tone:"match" },
-  { date:"9/24",day:"四",city:"東海市",title:"女子卡巴迪・KAB07",detail:"09:30 女子 B 組：泰國 vs. 中華台北；下午可自行加入行程。",transport:"名古屋 → 東海市民體育館",stay:"Central Nagoya Stays",tone:"match" },
+  { date:"9/20",day:"日",city:"名古屋",title:"抵達日本・JX838｜彈性休息",detail:"搭乘星宇航空 JX838 抵達名古屋，前往 Central Nagoya Stays 辦理入住；若入境、入住後仍在傍晚前抵市中心，可先逛榮商圈，否則保留體力。",transport:"中部國際機場 → 名古屋市區",stay:"Central Nagoya Stays",tone:"sendai",notice:"黑膠唱片店的主安排在 9/24 晚上；抵達日不必硬塞行程。" },
+  { date:"9/21",day:"一",city:"犬山",title:"犬山城與城下町",detail:"08:30 左右由名鐵名古屋出發；09:30 起參觀犬山城、城下町，午後回名古屋休息。",transport:"名鐵名古屋 ⇄ 犬山；犬山站步行至犬山城",stay:"Central Nagoya Stays",tone:"north",notice:"犬山城 09:00–17:00、最晚 16:30 入場；此日安排可避開比賽日前的長距離移動。" },
+  { date:"9/22",day:"二",city:"清洲・名古屋・東海市",title:"清洲城＋名古屋城 → KAB04",detail:"09:00 清洲城；11:00 名古屋城，13:30 前離開市區並前往場館；16:00 女子 B 組：斯里蘭卡 vs. 中華台北。",transport:"名鐵名古屋 ⇄ 清洲／名古屋城 → 東海市民體育館",stay:"Central Nagoya Stays",tone:"match",notice:"清洲城週一休館，因此放週二；名古屋城採上午短訪，最晚 13:30 出發前往場館。" },
+  { date:"9/23",day:"三",city:"墨俣・大垣・東海市",title:"墨俣一夜城＋大垣城 → KAB06",detail:"早上前往墨俣一夜城，約 11:30 轉往大垣城；13:00 前離開大垣並返回名古屋、轉往場館；16:00 女子 B 組：中華台北 vs. 尼泊爾。",transport:"名古屋 → 大垣／墨俣（公車）→ 名古屋 → 東海市民體育館",stay:"Central Nagoya Stays",tone:"match",notice:"兩座城館皆約 09:00 開館、17:00 閉館；此日仰賴墨俣公車銜接，出發前一週請再核對班次，若延誤優先保留大垣城與比賽。" },
+  { date:"9/24",day:"四",city:"東海市・西尾・榮",title:"KAB07 → 西尾城、抹茶、榮黑膠",detail:"09:30 女子 B 組：泰國 vs. 中華台北；賽後前往西尾歷史公園、西尾城與抹茶店，傍晚回榮商圈逛黑膠唱片店。",transport:"東海市民體育館 → 西尾 → 榮商圈 → 住宿",stay:"Central Nagoya Stays",tone:"match",notice:"西尾抹茶設施多於 17:00 前結束，公園 18:00 前；若 KAB07 賽程延後，依優先順序縮短西尾、保留榮商圈黑膠時間。" },
   { date:"9/25",day:"五",city:"東海市",title:"女子卡巴迪・KAB09／KAB10",detail:"13:00 與 18:00 為女子準決賽兩場；中華台北若晉級，將在其中一場出賽。",transport:"名古屋 → 東海市民體育館",stay:"Central Nagoya Stays",tone:"match",notice:"一天兩場，請確認中華台北所屬場次與入場安排。" },
-  { date:"9/26",day:"六",city:"東海市",title:"女子卡巴迪・KAB11",detail:"13:00 女子決賽；若中華台北與印度皆晉級，可能是中華台北 vs. 印度。",transport:"名古屋 → 東海市民體育館",stay:"Central Nagoya Stays",tone:"match",notice:"決賽對戰組合取決於準決賽結果。" },
-  { date:"9/27",day:"日",city:"名古屋",title:"預留：自由安排行程",detail:"全天保留，可加入名古屋市區或近郊計畫。",stay:"Central Nagoya Stays",tone:"west" },
-  { date:"9/28",day:"一",city:"名古屋",title:"預留：自由安排行程",detail:"全天保留，可加入想去的景點、餐廳與交通安排。",stay:"Central Nagoya Stays",tone:"west" },
-  { date:"9/29",day:"二",city:"名古屋",title:"預留：自由安排行程",detail:"回程前最後一個完整自由日。",stay:"Central Nagoya Stays",tone:"tokyo" },
+  { date:"9/26",day:"六",city:"熱田・東海市",title:"熱田神宮 → KAB11 女子決賽",detail:"08:00 參拜熱田神宮；10:30 左右離開，提早抵達場館；13:00 女子決賽，若中華台北與印度皆晉級，可能是中華台北 vs. 印度。",transport:"名古屋市區 → 熱田神宮 → 東海市民體育館",stay:"Central Nagoya Stays",tone:"match",notice:"熱田神宮只排上午，保留足夠時間前往決賽；決賽對戰組合取決於準決賽結果。" },
+  { date:"9/27",day:"日",city:"岩村・明智",title:"岩村城與日本大正村",detail:"早上搭 JR 中央本線至惠那、轉明知鐵道到岩村，走訪岩村城址與城下町；下午續往明智，參觀日本大正村後回名古屋。",transport:"名古屋 → 惠那（JR 中央本線）→ 岩村／明智（明知鐵道）→ 名古屋",stay:"Central Nagoya Stays",tone:"west",notice:"岩村歷史資料館週一休館；日本大正村各館有週二、週三、週五不同休館日，週日是最完整且安全的安排。" },
+  { date:"9/28",day:"一",city:"長久手・岡崎",title:"LINIMO・長久手古戰場 → 八草 → 愛知環狀鐵道・岡崎城",detail:"由藤之丘搭 LINIMO 至長久手古戰場，參觀古戰場紀念館；續搭至八草，轉愛知環狀鐵道至中岡崎，步行前往岡崎城與岡崎公園。",transport:"名古屋地下鐵東山線 → 藤之丘 → LINIMO 長久手古戰場／八草 → 愛知環狀鐵道 中岡崎",stay:"Central Nagoya Stays",tone:"west",notice:"長久手古戰場紀念館週二休館，放在週一；岡崎城 09:00–17:00、最晚 16:30 入場，請在下午 16:00 前抵達。" },
+  { date:"9/29",day:"二",city:"伊勢",title:"伊勢神宮（外宮 → 內宮）",detail:"早班近鐵前往伊勢市，依外宮、內宮、御蔭橫丁／托福橫丁順序參拜與散策；傍晚回名古屋，為隔日 JX839 留出餘裕。",transport:"近鐵名古屋 ⇄ 伊勢市／五十鈴川；市內公車往返外宮、內宮",stay:"Central Nagoya Stays",tone:"tokyo",notice:"伊勢神宮 9 月可參拜；此日為完整遠程日，建議先訂近鐵來回指定席，並在出發前再次確認班次。" },
   { date:"9/30",day:"三",city:"名古屋 → 台灣",title:"返程・JX839",detail:"從住宿前往中部國際機場，搭乘星宇航空 JX839 返回台灣。",transport:"名古屋市區 → 中部國際機場",stay:"返程",tone:"tokyo" },
 ];
 const seedResources = [
