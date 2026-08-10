@@ -23,7 +23,84 @@ const itinerary = [
   { date:"9/28",cardTime:"08:50 古戰場 · 11:45 岡崎城",day:"一",city:"長久手・岡崎",title:"LINIMO・長久手古戰場 → 八草 → 愛知環狀鐵道・岡崎城",detail:"由藤之丘搭 LINIMO 至長久手古戰場，續至八草轉愛知環狀鐵道，前往岡崎城。",transport:"太閤通 → 名古屋 → 地下鐵東山線藤之丘 → LINIMO 長久手古戰場／八草 → 愛知環狀鐵道中岡崎 → 步行至岡崎城",timing:"07:00 起床，07:45 離開住宿；住宿→長久手古戰場約 65 分鐘，08:50 前到紀念館旁。10:30 離開古戰場，LINIMO 至八草約 10 分鐘，愛知環狀鐵道至中岡崎約 45 分鐘、再走 10 分鐘，11:45 左右到岡崎城。16:00 離城，整段回住宿約 110 分鐘。",stay:"Central Nagoya Stays",tone:"west",notice:"長久手古戰場紀念館週二休館，放在週一；岡崎城 09:00–17:00、最晚 16:30 入場，請在下午 16:00 前抵達。" },
   { date:"9/29",cardTime:"09:30 外宮 · 11:10 內宮",day:"二",city:"伊勢",title:"伊勢神宮（外宮 → 內宮）",detail:"早班近鐵前往伊勢市，依外宮、內宮、御蔭橫丁／托福橫丁順序參拜與散策。",transport:"住宿步行至近鐵名古屋；近鐵特急至伊勢市；市內巴士外宮 → 內宮；宇治山田／伊勢市搭特急返名古屋",timing:"06:00 起床，06:45 離開住宿；步行 14 分鐘至近鐵名古屋，搭 07:30–08:00 的直達特急（75–80 分鐘），09:30 前到伊勢市；步行 5 分鐘至外宮。10:40 左右搭巴士約 20 分鐘至內宮；16:30 前離開御蔭橫丁，搭巴士回宇治山田／伊勢市，建議 17:30 前搭上返名古屋特急，約 19:00 回住宿。",stay:"Central Nagoya Stays",tone:"tokyo",notice:"伊勢神宮 9 月可參拜；近鐵特急請預訂指定席，並在出發前再次確認班次。" },
   { date:"9/30",cardTime:"15:55 出發 · 19:55 JX839",day:"三",city:"名古屋 → 台灣",title:"返程・JX839",detail:"JX839 目前夏季班表為 19:55 自中部國際機場起飛、22:00 抵桃園；此日只排退房與機場。",transport:"住宿步行 14 分鐘至名鐵名古屋 → μSKY 約 28 分鐘至中部國際機場",timing:"08:30 起床，11:00 前退房；因住宿為無人管理，先把行李寄放名古屋站置物櫃較安全。15:55 最晚離開住宿，約 17:00 到機場，保留近 3 小時辦理報到與安檢。",stay:"返程",tone:"tokyo",notice:"航班時刻仍請以星宇 App／訂位通知為準；不要安排 9/30 的遠程景點。" },
-];const seedResources = [
+];
+
+const venueMapUrl = "https://www.google.com/maps/place/%E6%9D%B1%E6%B5%B7%E5%B8%82%E6%B0%91%E9%AB%94%E8%82%B2%E9%A4%A8/@35.0152105,136.8821004,17z/data=!4m9!1m2!2m1!1sTokai+Citizen+Gymnasium,+Masugata-1-1+Takayokosukamachi,+Tokai,+Aichi+477-0037!3m5!1s0x60037e674802d5df:0xbf255fefc20dcac7!8m2!3d35.0151126!4d136.884416!16s%2Fg%2F1tnhy80v?entry=ttu&g_ep=EgoyMDI2MDgwMy4wIKXMDSoASAFQAw%3D%3D";
+const timedSchedule = {
+  "2026-09-20": [
+    { time:"18:45", title:"JX838 抵達中部國際機場", location:"中部國際機場第 1 航廈", transport:"先完成入境、領行李；預留約 60 分鐘。", note:"航班時刻仍可能調整，請以星宇 App／訂位通知為準。", url:"https://www.centrair.jp/en/", urlLabel:"機場資訊", map:"https://www.google.com/maps/search/?api=1&query=Chubu+Centrair+International+Airport" },
+    { time:"19:45", title:"搭名鐵 μSKY 前往名古屋", location:"中部國際空港站", transport:"μSKY 至名鐵名古屋站約 28 分鐘，再步行約 14 分鐘到住宿。", note:"抵達日只安排入住；班機延誤時直接搭下一班合適列車即可。", url:"https://www.meitetsu.co.jp/eng/", urlLabel:"名鐵資訊", map:"https://www.google.com/maps/search/?api=1&query=Central+Japan+International+Airport+Station" },
+    { time:"20:45", title:"入住 Central Nagoya Stays", location:"中村區若宮町 1-28-8", transport:"名鐵名古屋站出站後步行約 14 分鐘。", note:"無人住宿請先確認入住說明與門禁密碼。", map:"https://www.google.com/maps/search/?api=1&query=Central+Nagoya+Stays+1+Chome-28-8+Wakamiyacho+Nakamura+Ward+Nagoya" }
+  ],
+  "2026-09-21": [
+    { time:"07:50", title:"從住宿出發", location:"Central Nagoya Stays", transport:"步行約 14 分鐘至名鐵名古屋站。", note:"07:00 起床、簡單早餐後出發。", map:"https://www.google.com/maps/search/?api=1&query=Central+Nagoya+Stays+1+Chome-28-8+Wakamiyacho+Nakamura+Ward+Nagoya" },
+    { time:"09:00", title:"犬山城", location:"國寶犬山城", transport:"名鐵名古屋→犬山約 25 分鐘，步行約 20 分鐘。", note:"開放 09:00–17:00、最晚 16:30 入場；天守樓梯陡，建議穿防滑鞋。", url:"https://inuyama-castle.jp/", urlLabel:"犬山城官網", map:"https://www.google.com/maps/search/?api=1&query=Inuyama+Castle" },
+    { time:"11:00", title:"犬山城下町散策", location:"本町通・三光稻荷神社一帶", transport:"由犬山城步行即可抵達。", note:"午餐與甜點留在城下町；傍晚前回名古屋休息。", url:"https://inuyama.gr.jp/", urlLabel:"犬山旅遊", map:"https://www.google.com/maps/search/?api=1&query=Inuyama+Jokamachi" },
+    { time:"16:00", title:"返回名古屋", location:"犬山站", transport:"名鐵回名古屋約 25 分鐘，回住宿全程約 60 分鐘。", note:"隔天有 16:00 比賽，今晚不另排遠程行程。", map:"https://www.google.com/maps/search/?api=1&query=Inuyama+Station" }
+  ],
+  "2026-09-22": [
+    { time:"08:10", title:"從住宿出發", location:"Central Nagoya Stays", transport:"前往名鐵名古屋站，轉名鐵至新清洲。", note:"07:15 起床；今天上午景點要準時切換。", map:"https://www.google.com/maps/search/?api=1&query=Central+Nagoya+Stays+1+Chome-28-8+Wakamiyacho+Nakamura+Ward+Nagoya" },
+    { time:"09:00", title:"清洲城", location:"清洲城・五條川畔", transport:"新清洲站步行約 15 分鐘。", note:"開放 09:00–17:00；週一休館，所以安排在週二。", url:"https://www.nagoya-info.jp/spot/detail/169/", urlLabel:"景點資訊", map:"https://www.google.com/maps/search/?api=1&query=Kiyosu+Castle" },
+    { time:"11:00", title:"名古屋城", location:"名古屋城正門／本丸御殿", transport:"由清洲轉回市區，約 35 分鐘。", note:"天守閣目前不可進入；請在出發前確認亞運期間的特別開放與門票。", url:"https://www.nagoyajo.city.nagoya.jp/", urlLabel:"名古屋城官網", map:"https://www.google.com/maps/search/?api=1&query=Nagoya+Castle" },
+    { time:"12:45", title:"離開名古屋城前往場館", location:"名城線／名鐵轉乘", transport:"地鐵＋名鐵至尾張橫須賀站，步行約 12 分鐘；全程約 55 分鐘。", note:"下午比賽優先，務必保留延誤緩衝。", map:venueMapUrl },
+    { time:"14:00", title:"抵達東海市民體育館", location:"Tokai Citizen Gymnasium", transport:"入館、找座位與用餐緩衝。", note:"16:00 KAB04：女子 B 組 Sri Lanka vs. Chinese Taipei。", url:"./kabaddi-schedule.html", urlLabel:"完整賽程", map:venueMapUrl }
+  ],
+  "2026-09-23": [
+    { time:"07:00", title:"從住宿出發", location:"Central Nagoya Stays", transport:"前往 JR 名古屋站，搭東海道線至大垣。", note:"06:15 起床；今天的關鍵是 08:20 從大垣站出發的公車。", map:"https://www.google.com/maps/search/?api=1&query=Central+Nagoya+Stays+1+Chome-28-8+Wakamiyacho+Nakamura+Ward+Nagoya" },
+    { time:"08:20", title:"大垣站搭巴士往墨俣", location:"大垣站前", transport:"岐阜巴士約 28 分鐘，08:48 到墨俣。", note:"這是平日銜接；出發前一週請再次核對時刻表。", url:"https://www.gifubus.co.jp/", urlLabel:"巴士資訊", map:"https://www.google.com/maps/search/?api=1&query=Ogaki+Station" },
+    { time:"09:00", title:"墨俣一夜城", location:"墨俣一夜城址・犀川堤", transport:"墨俣巴士站步行約 12 分鐘。", note:"小型城館，若公車延誤則縮短停留，優先保留比賽。", url:"https://www.kankou-gifu.jp/spot/detail_6038.html", urlLabel:"景點資訊", map:"https://www.google.com/maps/search/?api=1&query=Sunomata+Ichiyajo+Castle" },
+    { time:"11:00", title:"大垣城", location:"大垣公園", transport:"10:27 巴士回大垣、10:50 左右到站，再步行約 7 分鐘。", note:"通常 09:00–17:00，最晚入館 16:30；若上午延誤，這站可移至候補。", url:"https://www.city.ogaki.lg.jp/0000000577.html", urlLabel:"大垣城資訊", map:"https://www.google.com/maps/search/?api=1&query=Ogaki+Castle" },
+    { time:"12:45", title:"離開大垣前往場館", location:"大垣→名古屋→尾張橫須賀", transport:"JR＋名鐵＋步行約 65 分鐘。", note:"目標 14:30 前到場館。", map:venueMapUrl },
+    { time:"16:00", title:"KAB06 中華台北女子隊", location:"東海市民體育館", transport:"賽後原路回名古屋。", note:"女子 B 組 Chinese Taipei vs. Nepal。", url:"./kabaddi-schedule.html", urlLabel:"完整賽程", map:venueMapUrl }
+  ],
+  "2026-09-24": [
+    { time:"07:45", title:"從住宿前往場館", location:"Central Nagoya Stays→東海市民體育館", transport:"名鐵＋步行約 50 分鐘。", note:"06:40 起床；08:35 前抵達，預留入館時間。", map:venueMapUrl },
+    { time:"09:30", title:"KAB07 中華台北女子隊", location:"東海市民體育館", transport:"賽程結束後才往西尾移動。", note:"女子 B 組 Thailand vs. Chinese Taipei；若轉播調整，依官方賽程為準。", url:"./kabaddi-schedule.html", urlLabel:"完整賽程", map:venueMapUrl },
+    { time:"13:30", title:"西尾歷史公園・西尾城", location:"西尾市歷史公園", transport:"場館至西尾約 89 分鐘、需轉乘；公園步行遊覽。", note:"園區在傍晚前關閉；比賽延後時先縮短這站。", url:"https://www.city.nishio.aichi.jp/shisetsu/1005437/1002603.html", urlLabel:"西尾市資訊", map:"https://www.google.com/maps/search/?api=1&query=Nishio+Historical+Park" },
+    { time:"15:00", title:"西尾抹茶時間", location:"西尾市歷史公園周邊", transport:"由公園步行選擇茶店／抹茶體驗。", note:"多數抹茶設施約 17:00 前結束，最晚 16:35 離開西尾。", url:"https://nishio-matcha.jp/", urlLabel:"西尾抹茶資訊", map:"https://www.google.com/maps/search/?api=1&query=Nishio+Matcha" },
+    { time:"17:50", title:"榮商圈逛黑膠・Face Records", location:"中日大樓 2F", transport:"西尾回名古屋後轉地下鐵至榮，約 75 分鐘。", note:"營業 10:00–20:00（依中日大樓休館日）；今晚可慢慢逛。", url:"https://nagoya.facerecords.com/", urlLabel:"唱片店官網", map:"https://www.google.com/maps/search/?api=1&query=Face+Records+Nagoya+Chunichi+Building" }
+  ],
+  "2026-09-25": [
+    { time:"11:00", title:"從住宿前往場館", location:"Central Nagoya Stays→東海市民體育館", transport:"名鐵＋步行約 50–60 分鐘。", note:"08:30 起床；12:00 前到場用午餐、確認賽程和座位。", map:venueMapUrl },
+    { time:"13:00", title:"KAB09 女子準決賽", location:"東海市民體育館", transport:"兩場間不另外排景點。", note:"若中華台北晉級，請依最終對戰表確認是否在此場出賽。", url:"./kabaddi-schedule.html", urlLabel:"完整賽程", map:venueMapUrl },
+    { time:"18:00", title:"KAB10 女子準決賽", location:"東海市民體育館", transport:"賽後原路回名古屋。", note:"若中華台北晉級，請依最終對戰表確認是否在此場出賽。", url:"./kabaddi-schedule.html", urlLabel:"完整賽程", map:venueMapUrl }
+  ],
+  "2026-09-26": [
+    { time:"07:30", title:"從住宿前往熱田神宮", location:"Central Nagoya Stays→熱田神宮", transport:"經名古屋站轉 JR 熱田站，步行入神宮；約 35 分鐘。", note:"06:45 起床，僅安排上午參拜。", map:"https://www.google.com/maps/search/?api=1&query=Atsuta+Jingu" },
+    { time:"08:05", title:"熱田神宮參拜", location:"熱田神宮", transport:"由 JR 熱田站步行約 10 分鐘。", note:"神宮可 24 小時參拜；御守授與約日出至日落。", url:"https://www.atsutajingu.or.jp/", urlLabel:"熱田神宮官網", map:"https://www.google.com/maps/search/?api=1&query=Atsuta+Jingu" },
+    { time:"10:20", title:"離開神宮前往女子決賽", location:"神宮前站→尾張橫須賀站", transport:"步行至神宮前站、搭名鐵，至場館約 45 分鐘。", note:"請在 11:15 前到場，決賽日前保留充足緩衝。", map:venueMapUrl },
+    { time:"13:00", title:"KAB11 女子決賽", location:"東海市民體育館", transport:"賽後直接回名古屋休息。", note:"若中華台北與印度皆晉級，可能在此爭冠；仍以準決賽結果為準。", url:"./kabaddi-schedule.html", urlLabel:"完整賽程", map:venueMapUrl }
+  ],
+  "2026-09-27": [
+    { time:"05:50", title:"從住宿前往恵那", location:"Central Nagoya Stays→JR 名古屋站", transport:"搭 JR 中央本線至恵那，務必趕上 08:05 明知鐵道。", note:"05:15 起床；全日爬坡最多，備水與防滑鞋。", map:"https://www.google.com/maps/search/?api=1&query=Ena+Station" },
+    { time:"08:34", title:"抵達岩村站", location:"明知鐵道・岩村站", transport:"由站走到岩村城址約 60 分鐘上坡。", note:"先走城下町後上城較順；若下雨，調整為城下町為主。", map:"https://www.google.com/maps/search/?api=1&query=Iwamura+Station" },
+    { time:"09:35", title:"岩村城址與城下町", location:"岩村城址", transport:"站→城下町→城址一路上坡。", note:"城址為戶外；歷史資料館週一休館，但今日為週日可順道入館。", url:"https://www.kankou-ena.jp/455.php", urlLabel:"岩村旅遊", map:"https://www.google.com/maps/search/?api=1&query=Iwamura+Castle+Ruins" },
+    { time:"13:50", title:"日本大正村", location:"明智町・大正村", transport:"12:53 從岩村搭明知鐵道，13:43 到明智站，步行約 7 分鐘。", note:"各館休館日不同；週日安排可看到較完整內容，入館票券依要進的館舍購買。", url:"https://taishomura.jp/", urlLabel:"大正村官網", map:"https://www.google.com/maps/search/?api=1&query=Japan+Taisho+Village" },
+    { time:"17:14", title:"從明智返程", location:"明智站", transport:"明知鐵道返恵那後轉 JR，約 19:40 回住宿。", note:"別錯過末段列車；全日不再安排晚間景點。", map:"https://www.google.com/maps/search/?api=1&query=Akechi+Station+Gifu" }
+  ],
+  "2026-09-28": [
+    { time:"07:45", title:"從住宿前往長久手", location:"Central Nagoya Stays→藤之丘站", transport:"經名古屋站轉地下鐵東山線，再接 LINIMO。", note:"07:00 起床；今天全程依 LINIMO、愛知環狀鐵道轉乘。", map:"https://www.google.com/maps/search/?api=1&query=Fujigaoka+Station+Aichi" },
+    { time:"08:50", title:"長久手古戰場", location:"長久手古戰場公園・色金山歷史公園", transport:"LINIMO 長久手古戰場站步行前往。", note:"古戰場公園可先走；紀念館週二休館，週一安排可參觀。", url:"https://kosenjo-kinenkan.com/", urlLabel:"古戰場資訊", map:"https://www.google.com/maps/search/?api=1&query=Nagakute+Battlefield+Museum" },
+    { time:"10:30", title:"LINIMO 至八草・轉愛知環狀鐵道", location:"八草站", transport:"LINIMO 約 10 分鐘；轉愛知環狀鐵道至中岡崎約 45 分鐘。", note:"轉乘月台與班次間隔需於當日再確認。", url:"https://www.linimo.jp/", urlLabel:"LINIMO 資訊", map:"https://www.google.com/maps/search/?api=1&query=Yakusa+Station" },
+    { time:"11:45", title:"岡崎城", location:"岡崎公園", transport:"中岡崎站步行約 10 分鐘。", note:"開放 09:00–17:00、最晚 16:30 入場；目標 16:00 前離城。", url:"https://okazaki-kanko.jp/point/2", urlLabel:"岡崎觀光", map:"https://www.google.com/maps/search/?api=1&query=Okazaki+Castle" },
+    { time:"16:00", title:"從岡崎返回名古屋", location:"中岡崎站", transport:"愛知環狀鐵道＋轉乘，回住宿約 110 分鐘。", note:"若上午延誤，優先保留岡崎城的入場時間。", map:"https://www.google.com/maps/search/?api=1&query=Nakaokazaki+Station" }
+  ],
+  "2026-09-29": [
+    { time:"06:45", title:"從住宿前往近鐵名古屋站", location:"Central Nagoya Stays→近鐵名古屋站", transport:"步行約 14 分鐘。", note:"06:00 起床；特急指定席請先訂好並在出發前確認班次。", map:"https://www.google.com/maps/search/?api=1&query=Kintetsu+Nagoya+Station" },
+    { time:"07:30", title:"近鐵特急前往伊勢市", location:"近鐵名古屋站", transport:"直達特急約 75–80 分鐘。", note:"搭最接近 07:30–08:00 的直達特急，讓外宮能從容開始。", url:"https://www.kintetsu.co.jp/foreign/chinese-tw/", urlLabel:"近鐵資訊", map:"https://www.google.com/maps/search/?api=1&query=Kintetsu+Nagoya+Station" },
+    { time:"09:30", title:"伊勢神宮・外宮", location:"豐受大神宮（外宮）", transport:"伊勢市站步行約 5 分鐘。", note:"九月參拜時間通常為 05:00–18:00；依外宮→內宮順序參拜。", url:"https://www.isejingu.or.jp/", urlLabel:"伊勢神宮官網", map:"https://www.google.com/maps/search/?api=1&query=Ise+Jingu+Geku" },
+    { time:"10:40", title:"巴士前往內宮", location:"外宮前→內宮前", transport:"市內巴士約 20 分鐘，當日依車流調整。", note:"假日／連假車流會影響時間，先把回程特急當作固定目標。", map:"https://www.google.com/maps/search/?api=1&query=Ise+Jingu+Naiku" },
+    { time:"11:10", title:"伊勢神宮・內宮與御蔭橫丁", location:"皇大神宮（內宮）・おかげ横丁", transport:"內宮前下車即達。", note:"九月參拜時間通常為 05:00–18:00；16:30 前離開、往宇治山田或伊勢市搭車。", url:"https://www.isejingu.or.jp/", urlLabel:"伊勢神宮官網", map:"https://www.google.com/maps/search/?api=1&query=Ise+Jingu+Naiku" },
+    { time:"17:30", title:"近鐵特急返回名古屋", location:"宇治山田站／伊勢市站", transport:"特急約 75–80 分鐘，約 19:00 回住宿。", note:"請預先保留指定席；若巴士塞車，直接改由伊勢市站回程。", map:"https://www.google.com/maps/search/?api=1&query=Ujiyamada+Station" }
+  ],
+  "2026-09-30": [
+    { time:"08:30", title:"起床與收拾行李", location:"Central Nagoya Stays", transport:"11:00 前退房。", note:"無人住宿請依退房指示；行李可先寄在名古屋站置物櫃。", map:"https://www.google.com/maps/search/?api=1&query=Central+Nagoya+Stays+1+Chome-28-8+Wakamiyacho+Nakamura+Ward+Nagoya" },
+    { time:"15:55", title:"從住宿前往中部國際機場", location:"名鐵名古屋站", transport:"步行至名鐵名古屋站，搭 μSKY 約 28 分鐘至機場。", note:"最晚 15:55 出發，目標 17:00 到機場，保留近 3 小時報到與安檢。", url:"https://www.meitetsu.co.jp/eng/", urlLabel:"名鐵資訊", map:"https://www.google.com/maps/search/?api=1&query=Meitetsu+Nagoya+Station" },
+    { time:"17:00", title:"抵達中部國際機場・辦理報到", location:"中部國際機場第 1 航廈", transport:"依星宇櫃檯與航班看板辦理。", note:"國際線報到截止規則請以星宇通知為準。", url:"https://www.centrair.jp/en/", urlLabel:"機場資訊", map:"https://www.google.com/maps/search/?api=1&query=Chubu+Centrair+International+Airport" },
+    { time:"19:55", title:"JX839 起飛返台", location:"中部國際機場→桃園", transport:"航程後預計 22:00 抵桃園。", note:"飛行時刻仍請以星宇 App／訂位通知為準。", url:"https://www.starlux-airlines.com/", urlLabel:"星宇航空", map:"https://www.google.com/maps/search/?api=1&query=Chubu+Centrair+International+Airport" }
+  ]
+};
+const seedResources = [
   { id:"venue-map",categoryId:"match",title:"東海市民體育館｜比賽場地地圖",url:"https://www.google.com/maps/place/%E6%9D%B1%E6%B5%B7%E5%B8%82%E6%B0%91%E9%AB%94%E8%82%B2%E9%A4%A8/@35.0152105,136.8821004,17z/data=!4m9!1m2!2m1!1sTokai+Citizen+Gymnasium,+Masugata-1-1+Takayokosukamachi,+Tokai,+Aichi+477-0037!3m5!1s0x60037e674802d5df:0xbf255fefc20dcac7!8m2!3d35.0151126!4d136.884416!16s%2Fg%2F1tnhy80v?entry=ttu&g_ep=EgoyMDI2MDgwMy4wIKXMDSoASAFQAw%3D%3D",note:"女子卡巴迪賽事場地：Masugata-1-1 Takayokosukamachi, Tokai, Aichi 477-0037。",location:"東海市",status:"booked",pinned:true,updatedBy:"行程整理",updatedAt:Date.now()-3000 },
   { id:"stay-map",categoryId:"stay",title:"Central Nagoya Stays｜住宿地圖",url:"https://www.google.com/maps/search/?api=1&query=Central+Nagoya+Stays+1+Chome-28-8+Wakamiyacho+Nakamura+Ward+Nagoya",note:"1 Chome-28-8 Wakamiyacho, Nakamura Ward, Nagoya, Aichi 453-0023。",location:"名古屋",status:"booked",pinned:true,updatedBy:"行程整理",updatedAt:Date.now()-2000 },
   { id:"games-site",categoryId:"match",title:"愛知・名古屋 2026 亞運官方網站",url:"https://www.aichi-nagoya2026.org/",note:"賽程、場館資訊與重要公告請以官方更新為準。",location:"愛知・名古屋",status:"shortlist",pinned:true,updatedBy:"行程整理",updatedAt:Date.now()-1000 },
@@ -131,13 +208,20 @@ function renderDayDetails() {
   $("#dayPlanList").innerHTML = rows.map((row) => `
     <section class="plan-row"><span class="plan-dot" aria-hidden="true"></span><small>${escapeHtml(row.label)}</small><h3>${escapeHtml(row.title)}</h3><p>${escapeHtml(row.detail)}</p></section>`).join("");
 
+  const plannedItems = timedSchedule[state.selectedDayKey] || [];
   const customItems = itemsForDay(state.selectedDayKey);
-  $("#dayAgenda").innerHTML = customItems.length ? customItems.map((agenda) => `
+  const plannedHtml = plannedItems.map((agenda) => `
+    <article class="agenda-item planned">
+      <span class="agenda-time">${escapeHtml(agenda.time || "未定")}</span>
+      <span class="agenda-main"><strong>${escapeHtml(agenda.title)}</strong>${agenda.location ? `<span class="agenda-location">⌖ ${escapeHtml(agenda.location)}</span>` : ""}${agenda.transport ? `<span class="agenda-transport">交通：${escapeHtml(agenda.transport)}</span>` : ""}${agenda.note ? `<span class="agenda-note">注意：${escapeHtml(agenda.note)}</span>` : ""}<span class="agenda-actions">${agenda.url ? `<a class="agenda-link" href="${escapeAttr(agenda.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(agenda.urlLabel || "網站資訊")} ↗</a>` : ""}${agenda.map ? `<a class="agenda-link navigation" href="${escapeAttr(agenda.map)}" target="_blank" rel="noopener noreferrer">導航 ↗</a>` : ""}</span></span>
+    </article>`).join("");
+  const customHtml = customItems.map((agenda) => `
     <button class="agenda-item" type="button" data-itinerary-edit="${escapeAttr(agenda.id)}" aria-label="編輯 ${escapeAttr(agenda.title)}">
       <span class="agenda-time">${escapeHtml(agenda.time || "未定")}</span>
       <span class="agenda-main"><strong>${escapeHtml(agenda.title)}</strong>${agenda.location ? `<span class="agenda-location">⌖ ${escapeHtml(agenda.location)}</span>` : ""}${agenda.notes ? `<span class="agenda-note">注意：${escapeHtml(agenda.notes)}</span>` : ""}</span>
       <span class="agenda-more" aria-hidden="true">•••</span>
-    </button>`).join("") : `<div class="agenda-empty"><span aria-hidden="true">＋</span><p>這天還沒有自己安排的細項<br>按「安排這一天」開始新增。</p></div>`;
+    </button>`).join("");
+  $("#dayAgenda").innerHTML = plannedHtml + customHtml || `<div class="agenda-empty"><span aria-hidden="true">＋</span><p>這天還沒有自己安排的細項<br>按「安排這一天」開始新增。</p></div>`;
 }
 
 function renderCategories() {
