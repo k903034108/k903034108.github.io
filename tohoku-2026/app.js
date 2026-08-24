@@ -137,7 +137,7 @@ const itinerary = [
       { time:"18:00",kind:"採買",title:"西友錦糸町店補貨",place:"西友 錦糸町店",detail:"先買 2–3 天早餐、飲水與簡單食物，降低元旦休店風險。",price:"平價超市",official:"https://www.seiyu.co.jp/shop/西友錦糸町店/",nav:mapsRoute("SUKE HOME KINSHICHO, 4-7-10 Kotobashi, Sumida City, Tokyo","西友 錦糸町店"),status:"current" },
     ],
   },
-+  {
+  {
     date:"12/31",day:"四",city:"東京",title:"丸之內、銀座與東京年末",detail:"先逛提早打烊的百貨，再走戶外街區。",stay:"SUKE HOMES KINSHICHO ②",tone:"tokyo",notice:"2026/27 百貨年末時間尚未公布；12/31 多半提早打烊。",
     schedule:[
       { time:"09:30–11:30",kind:"百貨",title:"東京站・大丸與丸之內",place:"大丸東京店",detail:"以 2026 年 12 月公布時段為準；若休店就改逛東京車站街。",price:"購物自理",official:"https://www.daimaru.co.jp/tokyo/",nav:mapsRoute("錦糸町駅","大丸東京店"),status:"pending" },
@@ -156,7 +156,7 @@ const itinerary = [
     ],
   },
 
-+  {
+  {
     date:"1/2",day:"六",city:"東京",title:"皇居新年參賀與百貨初賣",detail:"上午先保留皇居；午後回到丸之內、銀座看初賣。",stay:"SUKE HOMES KINSHICHO ④",tone:"tokyo",notice:"2027 新年參賀與各店初賣時段尚未發布，必須在 2026 年 12 月重新確認。",
     schedule:[
       { time:"08:00–12:00",kind:"節慶",title:"皇居新年一般參賀",place:"皇居正門 二重橋",detail:"若宮內廳公告 1/2 舉辦，依指定入口、入場時段與禁帶物規定前往。",price:"免費",official:"https://www.kunaicho.go.jp/event/sanga/sanga01.html",nav:mapsRoute("錦糸町駅","皇居正門 二重橋"),status:"pending" },
@@ -175,7 +175,7 @@ const itinerary = [
     ],
   },
 
-+  {
+  {
     date:"1/4",day:"一",city:"橫濱",title:"港未來、紅磚與中華街",detail:"用一整天走橫濱經典海港路線。",stay:"橫濱 · 住宿未定 ②",tone:"harbor",notice:"2027/1/4 館舍年初日曆尚未公布；杯麵博物館若休館，改港未來與山下公園。",
     schedule:[
       { time:"09:30–11:00",kind:"博物館",title:"杯麵博物館 橫濱",place:"カップヌードルミュージアム 横浜",detail:"My CUPNOODLES Factory 另需整理券／預約；出發前查 2027 年初開館日。",price:"成人入館 ¥500；體驗另計",official:"https://www.cupnoodles-museum.jp/ja/yokohama/",nav:mapsRoute("横浜駅","カップヌードルミュージアム 横浜"),status:"pending" },
@@ -261,13 +261,18 @@ function saveLocalItineraryItems() {
 }
 
 
+function itineraryDays() {
+  return itinerary.filter((item) => item && typeof item === "object" && typeof item.date === "string");
+}
+
 function itineraryDateKey(item) {
+  if (!item || typeof item.date !== "string") return "";
   const [month, day] = item.date.split("/").map((value) => value.padStart(2,"0"));
   return `${month === "12" ? "2026" : "2027"}-${month}-${day}`;
 }
 
 function tripDay(dateKey) {
-  return itinerary.find((item) => itineraryDateKey(item) === dateKey);
+  return itineraryDays().find((item) => itineraryDateKey(item) === dateKey);
 }
 
 function itemsForDay(dateKey) {
@@ -277,7 +282,7 @@ function itemsForDay(dateKey) {
 }
 
 function renderItineraryDateOptions() {
-  $("#itineraryDate").innerHTML = itinerary.map((item) => `<option value="${itineraryDateKey(item)}">${item.date}（週${item.day}） · ${item.city}</option>`).join("");
+  $("#itineraryDate").innerHTML = itineraryDays().map((item) => `<option value="${itineraryDateKey(item)}">${item.date}（週${item.day}） · ${item.city}</option>`).join("");
 }
 
 function openDayDialog(dateKey) {
@@ -438,7 +443,7 @@ function openItineraryEditor(id = null, dateKey = null) {
   $("#itineraryEditorTitle").textContent = id ? "編輯行程" : "新增行程";
   $("#deleteItineraryButton").hidden = !id;
   $("#itinerarySyncNote").textContent = firebaseConfigured() ? "儲存後會即時同步給兩個人。" : "目前會先儲存在這台裝置。";
-  form.elements.date.value = dateKey || itineraryDateKey(itinerary[0]);
+  form.elements.date.value = dateKey || itineraryDateKey(itineraryDays()[0]);
 
   if (id) {
     const item = state.itineraryItems.find((entry) => entry.id === id);
@@ -741,7 +746,7 @@ function safeHttpUrl(value) {
 }
 
 function renderItinerary() {
-  $("#dayGrid").innerHTML = itinerary.map((item) => {
+  $("#dayGrid").innerHTML = itineraryDays().map((item) => {
     const dateKey = itineraryDateKey(item);
     const customCount = itemsForDay(dateKey).length;
     const scheduleCount = item.schedule?.length || 0;
