@@ -5,6 +5,10 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#dbeaf4" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#07111d" media="(prefers-color-scheme: dark)">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="日本雪旅">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="description" content="2026–2027 日本東北滑雪、東京與橫濱的兩人共同旅行計畫">
   <meta property="og:type" content="website">
   <meta property="og:title" content="我們的日本雪旅｜2026–2027">
@@ -15,7 +19,11 @@
   <meta name="twitter:description" content="兩人的 19 天東北雪旅行程與共同資料庫">
   <meta name="twitter:image" content="https://k903034108.github.io/tohoku-2026/og-snow-trip.png">
   <title>我們的日本雪旅</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="./icons/icon-180.png">
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./enhancements.css">
   <script src="./firebase-config.js"></script>
 </head>
 <body>
@@ -26,15 +34,15 @@
         <span><strong>我們的日本雪旅</strong><small>2026.12.19 — 2027.01.06</small></span>
       </button>
 
-      <nav class="desktop-tabs" aria-label="主要功能">
-        <button class="active" type="button" data-tab="itinerary">行程</button>
-        <button type="button" data-tab="library">資料庫</button>
-        <button type="button" data-tab="search">搜尋</button>
+      <nav class="desktop-tabs" aria-label="主要功能" role="tablist">
+        <button class="active" id="tabToday" type="button" role="tab" aria-selected="true" aria-controls="todayView" data-tab="today">今天</button>
+        <button id="tabItinerary" type="button" role="tab" aria-selected="false" aria-controls="itineraryView" data-tab="itinerary" tabindex="-1">行程</button>
+        <button id="tabLibrary" type="button" role="tab" aria-selected="false" aria-controls="libraryView" data-tab="library" tabindex="-1">資料庫</button>
       </nav>
 
       <div class="collaborators">
         <span class="sync-dot local" id="syncDot" aria-hidden="true"></span>
-        <span id="syncLabel" aria-live="polite">本機草稿</span>
+        <span id="syncLabel" data-testid="sync-status" data-state="local" aria-live="polite">本機草稿</span>
         <div class="avatar-stack" aria-label="共同編輯者">
           <span class="avatar avatar-a" id="currentAvatar">我</span>
           <span class="avatar avatar-b">＋</span>
@@ -45,8 +53,58 @@
       </div>
     </header>
 
+    <div class="network-banner" id="networkBanner" data-testid="offline-banner" role="status" hidden>
+      <span aria-hidden="true">↓</span><strong>目前離線</strong><span>變更會先保存在這台裝置，連線後自動同步。</span>
+    </div>
+
     <div class="page-wrap">
-      <section id="itineraryView" class="view active" aria-labelledby="tripTitle">
+      <section id="todayView" class="view active" role="tabpanel" aria-labelledby="tabToday" data-testid="today-view">
+        <div class="today-page">
+          <section class="today-command panel" aria-labelledby="todayHeadline">
+            <div class="today-command-top">
+              <div>
+                <p class="eyebrow" id="todayPhase" data-testid="trip-phase" data-phase="pretrip">BEFORE THE TRIP</p>
+                <h1 id="todayHeadline">準備一起出發</h1>
+                <p id="todaySummary">正在整理下一個重要行程。</p>
+              </div>
+              <div class="today-date-badge"><strong id="todayDate">12/19</strong><span id="todayCity">山形</span></div>
+            </div>
+            <div class="today-command-grid">
+              <article class="next-action-card" id="nextActionCard" data-testid="next-action">
+                <div class="next-action-time"><span id="nextActionKicker">下一個行程</span><strong id="nextActionTime">時間未定</strong></div>
+                <div class="next-action-main">
+                  <span class="next-kind" id="nextActionKind">行程</span>
+                  <h2 id="nextActionTitle">載入中…</h2>
+                  <p id="nextActionLocation"></p>
+                  <div class="today-actions">
+                    <button class="primary-button" id="todayPrimary" type="button">打開當天行程</button>
+                    <button class="secondary-button" id="todayNavigate" type="button" hidden>開始導航</button>
+                  </div>
+                </div>
+              </article>
+              <aside class="today-stay-card">
+                <span>今晚住宿</span>
+                <strong id="todayStay">住宿未定</strong>
+                <p id="todayStayCity">請在行程裡補上住宿資訊</p>
+                <button type="button" id="todayStayCopy">複製住宿地點</button>
+              </aside>
+            </div>
+          </section>
+          <section class="today-attention" aria-labelledby="attentionTitle">
+            <div class="section-heading">
+              <div><p class="eyebrow">CHECK BEFORE GO</p><h2 id="attentionTitle">待確認與準備</h2></div>
+              <span class="status-chip" id="pendingCount" data-testid="pending-summary">0 項</span>
+            </div>
+            <div class="attention-list" id="attentionList"></div>
+          </section>
+          <section class="travel-tool-grid" aria-label="旅行工具">
+            <article><span aria-hidden="true">⌂</span><div><strong>加入主畫面</strong><p>像 App 一樣快速開啟，也能離線看行程。</p></div><button type="button" id="installButton">加入</button></article>
+            <article><span aria-hidden="true">↻</span><div><strong>共同編輯狀態</strong><p id="lastSyncText">等待第一次同步</p></div><button type="button" id="todayShareButton">查看</button></article>
+          </section>
+        </div>
+      </section>
+
+      <section id="itineraryView" class="view" role="tabpanel" aria-labelledby="tabItinerary" aria-hidden="true" hidden>
         <div class="hero-copy">
           <p class="eyebrow">19 DAYS · 18 NIGHTS · WINTER 2026</p>
           <h1 id="tripTitle">在藏王學會滑雪，<br>沿著雪線去旅行。</h1>
@@ -68,26 +126,15 @@
               <em>方塊寬度代表停留天數</em>
             </figcaption>
             <div class="route-map-scroll" tabindex="0" aria-label="住宿城市路線圖，可使用左右方向鍵瀏覽">
-              <div class="route-map-track" role="list" aria-label="12月19日至1月6日每晚停留城市">
-                <div class="route-map-stop city-yamagata" style="--days:1" role="listitem"><span>12/19</span><strong>山形</strong><small>1 晚</small></div>
-                <div class="route-map-stop city-zao" style="--days:2" role="listitem"><span>12/20–21</span><strong>藏王溫泉</strong><small>2 晚</small></div>
-                <div class="route-map-stop city-sendai" style="--days:1" role="listitem"><span>12/22</span><strong>仙台</strong><small>1 晚</small></div>
-                <div class="route-map-stop city-aomori" style="--days:3" role="listitem"><span>12/23–25</span><strong>青森</strong><small>3 晚</small></div>
-                <div class="route-map-stop city-akita" style="--days:1" role="listitem"><span>12/26</span><strong>秋田</strong><small>1 晚</small></div>
-                <div class="route-map-stop city-sendai" style="--days:3" role="listitem"><span>12/27–29</span><strong>仙台</strong><small>3 晚</small></div>
-                <div class="route-map-stop city-tokyo" style="--days:4" role="listitem"><span>12/30–1/2</span><strong>東京</strong><small>4 晚</small></div>
-                <div class="route-map-stop city-yokohama" style="--days:2" role="listitem"><span>1/3–4</span><strong>橫濱</strong><small>2 晚</small></div>
-                <div class="route-map-stop city-narita" style="--days:1" role="listitem"><span>1/5</span><strong>成田</strong><small>1 晚</small></div>
-                <div class="route-map-stop city-home" style="--days:1" role="listitem"><span>1/6</span><strong>台北</strong><small>返家</small></div>
-              </div>
+              <div class="route-map-track" id="routeMapTrack" role="list" aria-label="12月19日至1月6日每晚停留城市"></div>
             </div>
             <p class="route-map-note"><span aria-hidden="true">●</span> 依當晚住宿城市整理；12/30 白天仍在仙台，下午前往東京。手機可左右滑動。</p>
           </figure>
-          <div class="trip-stats">
-            <div><strong>19</strong><span>旅行天數</span></div>
-            <div><strong>2</strong><span>教練滑雪日</span></div>
-            <div><strong>9</strong><span>主要停留地</span></div>
-            <div><strong>1</strong><span>Resort 白神</span></div>
+          <div class="trip-stats" id="tripStats">
+            <div><strong id="tripDayCount">19</strong><span>旅行天數</span></div>
+            <div><strong id="confirmedCount">0</strong><span>已確認時段</span></div>
+            <div><strong id="cityCount">0</strong><span>主要停留地</span></div>
+            <div><strong id="pendingStatCount">0</strong><span>待確認事項</span></div>
           </div>
           <p class="image-caption">航班以電子機票為準；尚未發布的 2026/27 冬季班表與年末營業時間，已在每日行程中標示「待確認」。</p>
         </section>
@@ -116,7 +163,7 @@
         </section>
       </section>
 
-      <section id="libraryView" class="view resource-page" aria-labelledby="libraryTitle" hidden>
+      <section id="libraryView" class="view resource-page" role="tabpanel" aria-labelledby="tabLibrary" aria-hidden="true" hidden>
         <div class="section-heading library-heading">
           <div>
             <p class="eyebrow">SHARED LIBRARY</p>
@@ -132,10 +179,15 @@
         </div>
         <label class="search-field" for="librarySearch">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
-          <input id="librarySearch" type="search" placeholder="搜尋住宿、滑雪、城市或備註" autocomplete="off">
+          <input id="librarySearch" data-testid="global-search" type="search" placeholder="搜尋全部行程、住宿、地點、連結或備註" autocomplete="off">
           <button class="clear-search" type="button" aria-label="清除搜尋" hidden>×</button>
         </label>
+        <section class="itinerary-search-section" id="itinerarySearchSection" aria-labelledby="itinerarySearchTitle" hidden>
+          <div class="search-group-heading"><h2 id="itinerarySearchTitle">行程與住宿</h2><span id="itinerarySearchCount"></span></div>
+          <div class="itinerary-search-results" id="itinerarySearchResults"></div>
+        </section>
         <div class="category-row" id="categoryRow" aria-label="資料分類"></div>
+        <div class="search-group-heading" id="resourceSearchHeading" hidden><h2>收藏連結</h2><span id="resourceSearchCount"></span></div>
         <div class="resource-grid" id="resourceGrid"></div>
         <div class="empty-state" id="emptyState" hidden>
           <span>⌕</span><h2>還沒有符合的資料</h2><p>換個關鍵字，或把你剛看到的好連結加進來。</p>
@@ -160,14 +212,14 @@
 
     <button class="floating-add" type="button" data-action="add" aria-label="新增連結" hidden>＋</button>
 
-    <nav class="mobile-tabs" aria-label="主要功能">
-      <button class="active" type="button" data-tab="itinerary"><span>⌁</span>行程</button>
-      <button type="button" data-tab="library"><span>▦</span>資料庫</button>
-      <button type="button" data-tab="search"><span>⌕</span>搜尋</button>
+    <nav class="mobile-tabs" aria-label="主要功能" role="tablist">
+      <button class="active" type="button" role="tab" aria-selected="true" aria-controls="todayView" data-tab="today"><span>今</span>今天</button>
+      <button type="button" role="tab" aria-selected="false" aria-controls="itineraryView" data-tab="itinerary" tabindex="-1"><span>日</span>行程</button>
+      <button type="button" role="tab" aria-selected="false" aria-controls="libraryView" data-tab="library" tabindex="-1"><span>庫</span>資料庫</button>
     </nav>
   </main>
 
-  <dialog class="day-modal" id="dayDialog" aria-labelledby="dayDialogTitle">
+  <dialog class="day-modal" id="dayDialog" aria-labelledby="dayDialogTitle" data-testid="day-sheet">
     <article class="day-modal-shell">
       <header class="day-modal-header">
         <div>
@@ -177,6 +229,11 @@
         </div>
         <button class="dialog-close" type="button" data-close-dialog="dayDialog" aria-label="關閉當天行程">×</button>
       </header>
+      <nav class="day-switcher" aria-label="切換日期">
+        <button id="previousDayButton" data-testid="previous-day" type="button" aria-label="查看前一天">‹ <span>前一天</span></button>
+        <div class="day-date-strip" id="dayDateStrip" data-testid="date-strip" aria-label="旅行日期"></div>
+        <button id="nextDayButton" data-testid="next-day" type="button" aria-label="查看下一天"><span>下一天</span> ›</button>
+      </nav>
       <div class="day-modal-content">
         <section aria-labelledby="agendaHeading">
           <div class="agenda-section-heading">
@@ -190,7 +247,7 @@
     </article>
   </dialog>
 
-  <dialog class="sheet" id="itineraryEditorDialog" aria-labelledby="itineraryEditorTitle">
+  <dialog class="sheet" id="itineraryEditorDialog" aria-labelledby="itineraryEditorTitle" data-testid="itinerary-editor">
     <form method="dialog" class="sheet-shell" id="itineraryForm">
       <div class="sheet-grabber" aria-hidden="true"></div>
       <header class="sheet-header">
@@ -201,22 +258,36 @@
       <div class="editor-form">
         <label><span>安排日期</span><select id="itineraryDate" name="date" required></select></label>
         <label><span>行程名稱</span><input id="itineraryTitle" name="title" required maxlength="120" placeholder="例如：前往松島搭觀光船"></label>
+        <div class="form-grid itinerary-form-grid time-form-grid">
+          <label><span>開始時間（選填）</span><input id="itineraryStartTime" name="startTime" type="time"></label>
+          <label><span>結束時間（選填）</span><input id="itineraryEndTime" name="endTime" type="time"></label>
+        </div>
         <div class="form-grid itinerary-form-grid">
-          <label><span>時間／時段（可留白）</span><input id="itineraryTime" name="time" type="text" maxlength="40" placeholder="例如：09:00–11:30、傍晚"></label>
+          <label><span>彈性時段／顯示文字</span><input id="itineraryTimeLabel" name="timeLabel" type="text" maxlength="40" placeholder="例如：傍晚、抵達後、時間未定"></label>
           <label><span>類型</span><input id="itineraryKind" name="kind" maxlength="40" placeholder="例如：交通、住宿、景點"></label>
         </div>
         <div class="form-grid itinerary-form-grid">
-          <label><span>地點</span><input id="itineraryLocation" name="location" maxlength="120" placeholder="車站、餐廳或景點"></label>
+          <label><span>地點</span><input id="itineraryLocation" name="location" autocomplete="street-address" maxlength="120" placeholder="車站、餐廳或景點"></label>
           <label><span>確認狀態</span><select id="itineraryStatus" name="status"><option value="current">目前安排</option><option value="confirmed">已確認</option><option value="pending">待再確認</option></select></label>
         </div>
+        <label><span>今晚住宿城市（會更新路線圖）</span><input id="itineraryOvernightCity" name="overnightCity" maxlength="40" placeholder="只有住宿行程需要填，例如：青森"></label>
         <div class="form-grid itinerary-form-grid">
           <label><span>票價／預算（選填）</span><input id="itineraryPrice" name="price" maxlength="80" placeholder="例如：¥1,500／人"></label>
           <label><span>官網（選填）</span><input id="itineraryOfficialUrl" name="officialUrl" type="url" inputmode="url" placeholder="https://…"></label>
         </div>
         <label><span>票價／預約連結（選填）</span><input id="itineraryTicketUrl" name="ticketUrl" type="url" inputmode="url" placeholder="https://…"></label>
         <label><span>注意事項</span><textarea id="itineraryNotes" name="notes" maxlength="2000" rows="5" placeholder="票券、集合方式、交通備案或其他提醒…"></textarea></label>
+        <aside class="conflict-warning" id="conflictWarning" data-testid="conflict-warning" hidden>
+          <strong>另一位旅伴剛剛修改了這筆行程</strong><p>請選擇載入她的版本，或確認後保留你的內容。</p>
+          <div><button id="conflictReload" type="button">載入最新版本</button><button id="conflictKeepMine" type="button">保留我的版本</button></div>
+        </aside>
+        <details class="revision-history" id="itineraryHistory" hidden><summary>查看最近變更</summary><ol id="itineraryHistoryList"></ol></details>
         <p class="form-sync-note" id="itinerarySyncNote">登入後，這筆行程會即時同步給兩個人。</p>
-        <button class="delete-button" id="deleteItineraryButton" type="button" hidden>刪除這筆行程</button>
+        <div class="editor-secondary-actions">
+          <button id="duplicateItineraryButton" type="button" hidden>複製到另一筆</button>
+          <button id="restoreItineraryButton" type="button" hidden>還原原始安排</button>
+        </div>
+        <button class="delete-button" id="deleteItineraryButton" type="button" hidden>取消這筆行程</button>
       </div>
     </form>
   </dialog>
@@ -280,7 +351,7 @@
     </div>
   </dialog>
 
-  <div class="toast" id="toast" role="status" popover="manual" hidden><span>✓</span><b id="toastText"></b></div>
-  <script type="module" src="./app.js"></script>
+  <div class="toast" id="toast" data-testid="undo-bar" role="status" popover="manual" hidden><span>✓</span><b id="toastText"></b><button id="toastAction" type="button" hidden>復原</button></div>
+  <script type="module" src="./app-v2.js"></script>
 </body>
 </html>

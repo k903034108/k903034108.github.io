@@ -11,6 +11,17 @@ const categories = [
   { id: "transport", name: "交通", icon: "↝", color: "#34C759" },
   { id: "other", name: "其他", icon: "↗", color: "#8E8E93" },
 ];
+function mapsRoute(origin, destination) {
+  const url = new URL("https://www.google.com/maps/dir/");
+  url.searchParams.set("api","1");
+  if (origin && origin !== "目前位置") url.searchParams.set("origin",origin);
+  if (destination && destination !== "目前位置") url.searchParams.set("destination",destination);
+  url.searchParams.set("travelmode","transit");
+  return url.toString();
+}
+
+window.TRIP_DATA = { categories, itinerary:null, seedResources:null, mapsRoute };
+
 
 const itinerary = [
   {
@@ -211,6 +222,9 @@ const seedResources = [
   { id:"official-3",categoryId:"spot",title:"仙台市博物館｜2026 開館日曆",url:"https://www.city.sendai.jp/museum/kidscorner/kids-05.html",note:"官方日曆確認 12/28–12/31 休館，仙台三天改排松島與仙台城。",location:"仙台",status:"shortlist",pinned:true,updatedBy:"行程整理",updatedAt:Date.now()-1000 },
 ];
 
+window.TRIP_DATA.itinerary = itinerary;
+window.TRIP_DATA.seedResources = seedResources;
+if (!window.__TOHOKU_V2__) {
 const state = {
   tab: "itinerary",
   category: "all",
@@ -919,3 +933,4 @@ function renderDayDetails() {
 state.resources = loadLocalResources();
 state.itineraryItems = loadLocalItineraryItems();
 renderItinerary(); renderItineraryDateOptions(); renderCategories(); renderResources(); bindEvents(); updateModeBanner(); setTab("itinerary"); connectFirebase();
+}
