@@ -3,9 +3,17 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#f4f7fb" media="(prefers-color-scheme: light)">
-  <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
-  <meta name="description" content="2026 日本東北、藏王與東京的兩人共同旅行資料庫">
+  <meta name="theme-color" content="#dbeaf4" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#07111d" media="(prefers-color-scheme: dark)">
+  <meta name="description" content="2026–2027 日本東北滑雪、東京與橫濱的兩人共同旅行計畫">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="我們的日本雪旅｜2026–2027">
+  <meta property="og:description" content="從藏王滑雪、青森與 Resort 白神，一路旅行到東京、橫濱與成田。">
+  <meta property="og:image" content="https://k903034108.github.io/tohoku-2026/og-snow-trip.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="我們的日本雪旅｜2026–2027">
+  <meta name="twitter:description" content="兩人的 19 天東北雪旅行程與共同資料庫">
+  <meta name="twitter:image" content="https://k903034108.github.io/tohoku-2026/og-snow-trip.png">
   <title>我們的日本雪旅</title>
   <link rel="stylesheet" href="./styles.css">
   <script src="./firebase-config.js"></script>
@@ -15,7 +23,7 @@
     <header class="glass-bar" aria-label="網站標題列">
       <button class="brand" id="brandButton" type="button" aria-label="回到行程首頁">
         <span class="brand-mark" aria-hidden="true">旅</span>
-        <span><strong>我們的日本雪旅</strong><small>2026.12.19 — 2027.01.03</small></span>
+        <span><strong>我們的日本雪旅</strong><small>2026.12.19 — 2027.01.06</small></span>
       </button>
 
       <nav class="desktop-tabs" aria-label="主要功能">
@@ -40,32 +48,49 @@
     <div class="page-wrap">
       <section id="itineraryView" class="view active" aria-labelledby="tripTitle">
         <div class="hero-copy">
-          <p class="eyebrow">16 DAYS · 15 NIGHTS</p>
-          <h1 id="tripTitle">東北的雪，<br>最後落在東京。</h1>
-          <p>仙台、松島、八戶、青森、弘前，搭白神號到秋田；藏王滑兩天後，12/30 下午直接前往東京。</p>
+          <p class="eyebrow">19 DAYS · 18 NIGHTS · WINTER 2026</p>
+          <h1 id="tripTitle">在藏王學會滑雪，<br>沿著雪線去旅行。</h1>
+          <p>台北飛仙台，先在藏王住三天、跟教練學滑雪；再走訪青森、八戶、弘前與秋田，最後到仙台、東京、橫濱與成田。</p>
           <div class="hero-actions">
-            <a class="primary-button" href="#itineraryGraphic">查看行程圖</a>
-            <a class="secondary-button" href="./itinerary-2026-2027.png" download>下載行程圖</a>
+            <a class="primary-button" href="#dailyTitle">打開每日行程</a>
+            <button class="secondary-button" type="button" data-action="add-itinerary">＋ 自己加一筆</button>
           </div>
         </div>
 
-        <section class="panel" id="itineraryGraphic" aria-labelledby="graphicTitle">
+        <section class="panel trip-dashboard" aria-labelledby="overviewTitle">
           <div class="section-heading">
-            <div><p class="eyebrow">MASTER ITINERARY</p><h2 id="graphicTitle">更新版行程圖</h2></div>
-            <span class="status-chip">12/30 已更新</span>
+            <div><p class="eyebrow">TRIP AT A GLANCE</p><h2 id="overviewTitle">這趟雪旅的路線</h2></div>
+            <span class="status-chip">最新行程 · 8/24</span>
           </div>
-          <a class="image-frame" href="./itinerary-2026-2027.png" target="_blank" rel="noreferrer" aria-label="以原始尺寸開啟行程圖">
-            <img src="./itinerary-2026-2027.svg" alt="2026年12月19日至2027年1月3日日本東北、藏王與東京16日行程圖">
-            <span class="zoom-hint">⛶ 點一下放大</span>
-          </a>
-          <p class="image-caption">時刻為 2026/7 規劃基準。白神號運轉日已確認；藏王巴士與山形新幹線最終時刻請在秋季再複核。</p>
+          <div class="route-strip" aria-label="旅行順序">
+            <span>台北</span><i>→</i><span>山形</span><i>→</i><span>藏王</span><i>→</i><span>仙台</span><i>→</i><span>青森</span><i>→</i><span>秋田</span><i>→</i><span>仙台</span><i>→</i><span>東京</span><i>→</i><span>橫濱</span><i>→</i><span>成田</span>
+          </div>
+          <div class="trip-stats">
+            <div><strong>19</strong><span>旅行天數</span></div>
+            <div><strong>2</strong><span>教練滑雪日</span></div>
+            <div><strong>9</strong><span>主要停留地</span></div>
+            <div><strong>1</strong><span>Resort 白神</span></div>
+          </div>
+          <p class="image-caption">航班以電子機票為準；尚未發布的 2026/27 冬季班表與年末營業時間，已在每日行程中標示「待確認」。</p>
+        </section>
+
+        <section class="year-end-section" aria-labelledby="yearEndTitle">
+          <div class="section-heading">
+            <div><p class="eyebrow">SENDAI · 12/28–12/30</p><h2 id="yearEndTitle">年末開放檢查</h2></div>
+            <span class="section-note">官方資料查核：2026/8/24</span>
+          </div>
+          <div class="opening-grid">
+            <article class="opening-card is-open"><span class="opening-symbol">✓</span><div><small>三天皆預定運航</small><h3>松島觀光船</h3><p>全年無休；冬季約每小時一班，仍可能因風浪停航。</p><a href="https://www.matsushima.or.jp/timesheet/" target="_blank" rel="noreferrer">船班與票價 ↗</a></div></article>
+            <article class="opening-card is-closed"><span class="opening-symbol">×</span><div><small>12/28–12/30 全部休館</small><h3>仙台市博物館</h3><p>2026 年官方日曆已確認 12/28–12/31 休館，本次不排入。</p><a href="https://www.city.sendai.jp/museum/kidscorner/kids-05.html" target="_blank" rel="noreferrer">官方開館日曆 ↗</a></div></article>
+            <article class="opening-card is-open"><span class="opening-symbol">✓</span><div><small>三天都能前往</small><h3>仙台城跡</h3><p>戶外區 24 小時、免費；見聞館 9:00–17:00、全年無休。</p><a href="https://www.city.sendai.jp/shisekichosa/question.html" target="_blank" rel="noreferrer">官方說明 ↗</a></div></article>
+          </div>
         </section>
 
         <section class="day-section" aria-labelledby="dailyTitle">
           <div class="section-heading">
             <div><p class="eyebrow">DAY BY DAY</p><h2 id="dailyTitle">每天要去哪裡</h2></div>
             <div class="day-heading-actions">
-              <span class="section-note">點選日期查看當天行程</span>
+              <span class="section-note">點一天，查看時段、票價與導航</span>
               <button class="add-button" type="button" data-action="add-itinerary"><span>＋</span> 新增行程</button>
             </div>
           </div>
@@ -136,15 +161,15 @@
       </header>
       <div class="day-modal-content">
         <section aria-labelledby="agendaHeading">
+          <div class="agenda-section-heading"><div><p class="eyebrow">TIME TABLE</p><h3 id="agendaHeading">當天時段安排</h3></div></div>
+          <div class="day-plan-list" id="dayPlanList"></div>
+        </section>
+        <section aria-labelledby="customAgendaHeading">
           <div class="agenda-section-heading">
-            <div><p class="eyebrow">LIVE SCHEDULE</p><h3 id="agendaHeading">你們安排的行程</h3></div>
+            <div><p class="eyebrow">OUR EDITS</p><h3 id="customAgendaHeading">你們自己加的行程</h3></div>
             <button class="agenda-add-button" type="button" data-action="add-itinerary"><span>＋</span> 安排這一天</button>
           </div>
           <div class="day-agenda" id="dayAgenda"></div>
-        </section>
-        <section aria-labelledby="overviewHeading">
-          <div class="agenda-section-heading"><div><p class="eyebrow">TRIP OVERVIEW</p><h3 id="overviewHeading">原定行程總覽</h3></div></div>
-          <div class="day-plan-list" id="dayPlanList"></div>
         </section>
       </div>
     </article>
@@ -160,10 +185,14 @@
       </header>
       <div class="editor-form">
         <label><span>安排日期</span><select id="itineraryDate" name="date" required></select></label>
-        <label><span>行程名稱</span><input id="itineraryTitle" name="title" required maxlength="120" placeholder="例如：前往青森縣立美術館"></label>
+        <label><span>行程名稱</span><input id="itineraryTitle" name="title" required maxlength="120" placeholder="例如：前往松島搭觀光船"></label>
         <div class="form-grid itinerary-form-grid">
           <label><span>時間（可留白）</span><input id="itineraryTime" name="time" type="time"></label>
           <label><span>地點</span><input id="itineraryLocation" name="location" maxlength="120" placeholder="車站、餐廳或景點"></label>
+        </div>
+        <div class="form-grid itinerary-form-grid">
+          <label><span>票價／預算（選填）</span><input id="itineraryPrice" name="price" maxlength="80" placeholder="例如：¥1,500／人"></label>
+          <label><span>官網（選填）</span><input id="itineraryOfficialUrl" name="officialUrl" type="url" inputmode="url" placeholder="https://…"></label>
         </div>
         <label><span>注意事項</span><textarea id="itineraryNotes" name="notes" maxlength="2000" rows="5" placeholder="票券、集合方式、交通備案或其他提醒…"></textarea></label>
         <p class="form-sync-note" id="itinerarySyncNote">登入後，這筆行程會即時同步給兩個人。</p>
