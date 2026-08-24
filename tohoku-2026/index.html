@@ -62,9 +62,27 @@
             <div><p class="eyebrow">TRIP AT A GLANCE</p><h2 id="overviewTitle">這趟雪旅的路線</h2></div>
             <span class="status-chip">最新行程 · 8/24</span>
           </div>
-          <div class="route-strip" aria-label="旅行順序">
-            <span>台北</span><i>→</i><span>山形</span><i>→</i><span>藏王</span><i>→</i><span>仙台</span><i>→</i><span>青森</span><i>→</i><span>秋田</span><i>→</i><span>仙台</span><i>→</i><span>東京</span><i>→</i><span>橫濱</span><i>→</i><span>成田</span>
-          </div>
+          <figure class="snow-route-map" aria-labelledby="routeMapTitle">
+            <figcaption>
+              <span><small>每晚落腳城市</small><strong id="routeMapTitle">日期 × 城市一覽</strong></span>
+              <em>方塊寬度代表停留天數</em>
+            </figcaption>
+            <div class="route-map-scroll" tabindex="0" aria-label="住宿城市路線圖，可使用左右方向鍵瀏覽">
+              <div class="route-map-track" role="list" aria-label="12月19日至1月6日每晚停留城市">
+                <div class="route-map-stop city-yamagata" style="--days:1" role="listitem"><span>12/19</span><strong>山形</strong><small>1 晚</small></div>
+                <div class="route-map-stop city-zao" style="--days:2" role="listitem"><span>12/20–21</span><strong>藏王溫泉</strong><small>2 晚</small></div>
+                <div class="route-map-stop city-sendai" style="--days:1" role="listitem"><span>12/22</span><strong>仙台</strong><small>1 晚</small></div>
+                <div class="route-map-stop city-aomori" style="--days:3" role="listitem"><span>12/23–25</span><strong>青森</strong><small>3 晚</small></div>
+                <div class="route-map-stop city-akita" style="--days:1" role="listitem"><span>12/26</span><strong>秋田</strong><small>1 晚</small></div>
+                <div class="route-map-stop city-sendai" style="--days:3" role="listitem"><span>12/27–29</span><strong>仙台</strong><small>3 晚</small></div>
+                <div class="route-map-stop city-tokyo" style="--days:4" role="listitem"><span>12/30–1/2</span><strong>東京</strong><small>4 晚</small></div>
+                <div class="route-map-stop city-yokohama" style="--days:2" role="listitem"><span>1/3–4</span><strong>橫濱</strong><small>2 晚</small></div>
+                <div class="route-map-stop city-narita" style="--days:1" role="listitem"><span>1/5</span><strong>成田</strong><small>1 晚</small></div>
+                <div class="route-map-stop city-home" style="--days:1" role="listitem"><span>1/6</span><strong>台北</strong><small>返家</small></div>
+              </div>
+            </div>
+            <p class="route-map-note"><span aria-hidden="true">●</span> 依當晚住宿城市整理；12/30 白天仍在仙台，下午前往東京。手機可左右滑動。</p>
+          </figure>
           <div class="trip-stats">
             <div><strong>19</strong><span>旅行天數</span></div>
             <div><strong>2</strong><span>教練滑雪日</span></div>
@@ -161,15 +179,12 @@
       </header>
       <div class="day-modal-content">
         <section aria-labelledby="agendaHeading">
-          <div class="agenda-section-heading"><div><p class="eyebrow">TIME TABLE</p><h3 id="agendaHeading">當天時段安排</h3></div></div>
-          <div class="day-plan-list" id="dayPlanList"></div>
-        </section>
-        <section aria-labelledby="customAgendaHeading">
           <div class="agenda-section-heading">
-            <div><p class="eyebrow">OUR EDITS</p><h3 id="customAgendaHeading">你們自己加的行程</h3></div>
-            <button class="agenda-add-button" type="button" data-action="add-itinerary"><span>＋</span> 安排這一天</button>
+            <div><p class="eyebrow">TIME TABLE</p><h3 id="agendaHeading">當天全部安排</h3></div>
+            <button class="agenda-add-button" type="button" data-action="add-itinerary"><span>＋</span> 新增一筆</button>
           </div>
-          <div class="day-agenda" id="dayAgenda"></div>
+          <p class="agenda-edit-hint">每一筆都可以直接編輯；新增與預排行程會依時間排在同一份清單。</p>
+          <div class="day-plan-list" id="dayPlanList"></div>
         </section>
       </div>
     </article>
@@ -187,13 +202,18 @@
         <label><span>安排日期</span><select id="itineraryDate" name="date" required></select></label>
         <label><span>行程名稱</span><input id="itineraryTitle" name="title" required maxlength="120" placeholder="例如：前往松島搭觀光船"></label>
         <div class="form-grid itinerary-form-grid">
-          <label><span>時間（可留白）</span><input id="itineraryTime" name="time" type="time"></label>
+          <label><span>時間／時段（可留白）</span><input id="itineraryTime" name="time" type="text" maxlength="40" placeholder="例如：09:00–11:30、傍晚"></label>
+          <label><span>類型</span><input id="itineraryKind" name="kind" maxlength="40" placeholder="例如：交通、住宿、景點"></label>
+        </div>
+        <div class="form-grid itinerary-form-grid">
           <label><span>地點</span><input id="itineraryLocation" name="location" maxlength="120" placeholder="車站、餐廳或景點"></label>
+          <label><span>確認狀態</span><select id="itineraryStatus" name="status"><option value="current">目前安排</option><option value="confirmed">已確認</option><option value="pending">待再確認</option></select></label>
         </div>
         <div class="form-grid itinerary-form-grid">
           <label><span>票價／預算（選填）</span><input id="itineraryPrice" name="price" maxlength="80" placeholder="例如：¥1,500／人"></label>
           <label><span>官網（選填）</span><input id="itineraryOfficialUrl" name="officialUrl" type="url" inputmode="url" placeholder="https://…"></label>
         </div>
+        <label><span>票價／預約連結（選填）</span><input id="itineraryTicketUrl" name="ticketUrl" type="url" inputmode="url" placeholder="https://…"></label>
         <label><span>注意事項</span><textarea id="itineraryNotes" name="notes" maxlength="2000" rows="5" placeholder="票券、集合方式、交通備案或其他提醒…"></textarea></label>
         <p class="form-sync-note" id="itinerarySyncNote">登入後，這筆行程會即時同步給兩個人。</p>
         <button class="delete-button" id="deleteItineraryButton" type="button" hidden>刪除這筆行程</button>
