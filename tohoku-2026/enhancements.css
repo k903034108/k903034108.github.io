@@ -515,3 +515,242 @@ textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
   font-weight: 700;
   cursor: pointer;
 }
+
+/* High-visibility dates and times */
+:root {
+  --surface-strong: #ffffff;
+  --accent-strong: #0067c4;
+}
+
+.brand small,
+.today-date-badge strong,
+.next-action-time strong,
+.attention-date,
+.day-button-top > strong,
+.day-date-strip button small,
+.timeline-time strong,
+.agenda-time,
+.itinerary-search-card small,
+.route-stop small,
+.status-chip,
+.revision-history li span,
+#dayDialogDate,
+#itineraryDate,
+#itineraryStartTime,
+#itineraryEndTime,
+#itineraryTimeLabel {
+  font-variant-numeric: tabular-nums;
+}
+
+.brand small { font-size: 13px; font-weight: 750; }
+.status-chip { font-size: 13px; font-weight: 750; }
+.today-date-badge strong {
+  font-size: clamp(30px,7vw,36px);
+  font-weight: 900;
+  line-height: 1;
+}
+.next-action-time strong {
+  font-size: clamp(25px,6vw,32px);
+  font-weight: 900;
+  line-height: 1.15;
+}
+.attention-date { font-size: 15px; font-weight: 850; line-height: 1.25; }
+.day-button-top > strong { font-size: 30px; font-weight: 900; line-height: 1; }
+.day-button .weekday { font-size: 14px; font-weight: 800; }
+.day-button-meta { font-size: 13px; font-weight: 720; }
+#dayDialogDate {
+  margin-bottom: 9px;
+  font-size: 16px;
+  font-weight: 850;
+  line-height: 1.3;
+  letter-spacing: .02em;
+}
+.day-date-strip button small { font-size: 14px; font-weight: 850; }
+.day-date-strip button span { font-size: 11px; font-weight: 700; }
+.timeline-time strong {
+  font-size: clamp(23px,6vw,28px);
+  font-weight: 900;
+  line-height: 1.1;
+}
+.agenda-time { font-size: 19px; font-weight: 850; line-height: 1.2; }
+.route-stop em { font-size: 12px; }
+@media (min-width: 761px) {
+  .route-map-track { min-width: 1200px; }
+}
+
+.itinerary-search-card small,
+.route-stop small,
+.revision-history li span { font-size: 14px; font-weight: 800; line-height: 1.35; }
+#itineraryDate,
+#itineraryStartTime,
+#itineraryEndTime,
+#itineraryTimeLabel { font-size: 18px; font-weight: 750; }
+
+/* iPhone/Safari dark appearance: opaque surfaces and explicit high-contrast text */
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --canvas: #070c12;
+    --surface: rgba(17,28,39,.98);
+    --solid: #15212d;
+    --glass: rgba(18,30,42,.94);
+    --label: #f7f9fc;
+    --secondary: #c9d4df;
+    --tertiary: #aab9c8;
+    --line: rgba(255,255,255,.16);
+    --blue: #73bfff;
+    --green: #72df91;
+    --orange: #ffbc5c;
+    --red: #ff8178;
+    --content-surface: #111c27;
+    --content-muted: #1c2a38;
+    --surface-strong: #253647;
+    --accent-strong: #9bd3ff;
+    --focus-ring: 0 0 0 4px rgba(115,191,255,.32);
+    --shadow: 0 24px 70px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.07);
+  }
+
+  body {
+    color: var(--label);
+    background: linear-gradient(180deg,#05090e 0,#0a1420 46%,#101b25 100%);
+  }
+  body::before { opacity: .2; }
+  body::after { opacity: .12; }
+
+  .glass-bar,
+  .mobile-tabs,
+  .panel,
+  .resource-page,
+  .opening-card,
+  .day-button,
+  .today-command,
+  .attention-item,
+  .travel-tool-grid article {
+    color: var(--label);
+    background: var(--content-surface);
+    border-color: rgba(255,255,255,.14);
+    box-shadow: var(--shadow);
+  }
+  .glass-bar,
+  .mobile-tabs { background: rgba(18,30,42,.94); }
+  .desktop-tabs { background: rgba(255,255,255,.08); }
+  .desktop-tabs button.active { color: #fff; background: rgba(255,255,255,.16); box-shadow: none; }
+  .mobile-tabs button.active { color: #a9dcff; background: rgba(115,191,255,.15); }
+
+  .next-action-card,
+  .today-stay-card,
+  .itinerary-search-card,
+  .resource-card,
+  .timeline-card,
+  .agenda-item,
+  .snow-route-map {
+    color: var(--label);
+    background: var(--content-muted);
+    border-color: rgba(255,255,255,.13);
+    box-shadow: 0 14px 36px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.05);
+  }
+
+  .status-chip,
+  .stay-chip { color: #a9dcff; background: rgba(115,191,255,.16); }
+  .trip-stats div { color: var(--label); background: #1c2a38; border-color: rgba(255,255,255,.13); box-shadow: inset 0 1px 0 rgba(255,255,255,.05); }
+  .day-button-count { color: #d7edff; background: rgba(255,255,255,.1); box-shadow: none; }
+
+  .day-modal-shell,
+  .sheet-shell {
+    color: var(--label);
+    background: #111c27;
+    border-color: rgba(255,255,255,.16);
+    box-shadow: 0 36px 110px rgba(0,0,0,.58),inset 0 1px 0 rgba(255,255,255,.06);
+  }
+  .day-modal-header,
+  .sheet-header,
+  .day-switcher { background: rgba(22,35,48,.98); border-color: rgba(255,255,255,.13); }
+  .editor-form input:not([type=checkbox]):not([type=radio]),
+  .editor-form select,
+  .editor-form textarea,
+  .search-field,
+  .share-url {
+    color: var(--label);
+    background: #172431;
+    border-color: rgba(255,255,255,.16);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+  }
+  .editor-form input::placeholder,
+  .editor-form textarea::placeholder,
+  .search-field input::placeholder { color: #94a7b9; opacity: 1; }
+
+  .today-command h1,
+  .next-action-main h2,
+  .today-stay-card > strong,
+  .hero-copy h1,
+  .day-modal-header h2,
+  .timeline-title-row h3,
+  .route-stop strong,
+  .snow-route-map figcaption strong,
+  .opening-card h3,
+  .resource-card-body h2 { color: var(--label); text-shadow: none; }
+  .timeline-time strong { color: #9bd8ff; }
+  .hero-copy > p:not(.eyebrow),
+  .timeline-detail,
+  .day-notice p,
+  .route-stop small,
+  .attention-item small,
+  .today-command-top > div:first-child > p:last-child { color: var(--secondary); text-shadow: none; }
+  .timeline-place { color: #9bd8ff; }
+  .today-date-badge { color: #a9dcff; background: rgba(115,191,255,.14); border-color: rgba(115,191,255,.24); }
+  .next-kind { color: #a9dcff; background: rgba(115,191,255,.14); }
+  .timeline-time span { color: #d3deea; background: rgba(255,255,255,.09); }
+
+  .timeline-actions .edit-action { color: #dbc9ff; background: rgba(180,145,255,.13); border-color: rgba(200,180,255,.2); }
+  .google-button { color: var(--label); background: #253647; border-color: rgba(255,255,255,.16); }
+  .timeline-actions a,
+  .timeline-actions button,
+  .plan-more button,
+  .secondary-button,
+  .agenda-add-button,
+  .travel-tool-grid button,
+  .today-stay-card button,
+  .day-switcher > button {
+    color: #a9dcff;
+    background: rgba(255,255,255,.09);
+    border-color: rgba(255,255,255,.14);
+    box-shadow: none;
+  }
+  .timeline-actions .nav-action { color: #fff; background: linear-gradient(180deg,#278fff,#0874df); }
+  .day-date-strip button { color: var(--secondary); }
+  .day-date-strip button.active { color: #06111b; background: #8dceff; }
+  .route-stop { color: var(--label); background: color-mix(in srgb,var(--route-color) 22%,#15212d); border-color: rgba(255,255,255,.15); }
+  .route-stop:not(:last-child)::after { color: #d5e3ef; background: #263747; }
+  .snow-route-map figcaption small { color: #9bd3ff; }
+  .day-notice { background: rgba(255,188,92,.12); border-color: rgba(255,188,92,.3); box-shadow: none; }
+  .day-notice > span { color: #ffd698; background: rgba(255,188,92,.18); }
+  .price-pill,
+  .agenda-price { color: #a9efc2; background: rgba(114,223,145,.12); border-color: rgba(114,223,145,.22); }
+  .verify-pill { color: #ffd698; background: rgba(255,188,92,.14); }
+  .status-confirmed .verify-pill { color: #a9efc2; background: rgba(114,223,145,.14); }
+  .status-current .verify-pill { color: #a9dcff; background: rgba(115,191,255,.14); }
+  .verify-pill.conflict { color: #ffd1a1; background: rgba(255,159,10,.2); border-color: rgba(255,188,92,.34); }
+  .schedule-warning,
+  .conflict-warning { color: #ffbeb8; background: rgba(255,129,120,.12); border-color: rgba(255,129,120,.25); }
+  .conflict-warning button { color: #ffd4d0; background: rgba(255,255,255,.09); }
+  .mode-banner { color: var(--label); background: rgba(255,188,92,.1); border-color: rgba(255,188,92,.23); }
+  .mode-banner.cloud { background: rgba(114,223,145,.1); border-color: rgba(114,223,145,.23); }
+  .banner-icon,
+  .mode-banner button,
+  .pinned-badge { color: #ffd698; background: rgba(255,188,92,.16); }
+  .is-open .opening-symbol { color: #a9efc2; background: rgba(114,223,145,.15); }
+  .is-closed .opening-symbol { color: #ffbeb8; background: rgba(255,129,120,.14); }
+  .status-idea { color: #d0d8e1; background: rgba(170,185,200,.14); }
+  .status-shortlist { color: #a9dcff; background: rgba(115,191,255,.14); }
+  .status-booked { color: #a9efc2; background: rgba(114,223,145,.14); }
+  .network-banner { color: #ffe0aa; background: #49351c; border-color: rgba(255,188,92,.28); }
+  .network-banner > span:last-child { color: #f2d3a2; }
+
+}
+
+@media (prefers-color-scheme: dark) and (prefers-reduced-transparency: reduce) {
+  .glass-bar, .mobile-tabs, .panel, .resource-page, .opening-card, .day-button,
+  .day-modal-shell, .sheet-shell, .today-command, .next-action-card,
+  .today-stay-card, .attention-item, .travel-tool-grid article, .route-stop,
+  .itinerary-search-card { background: #111c27; backdrop-filter: none; -webkit-backdrop-filter: none; }
+}
