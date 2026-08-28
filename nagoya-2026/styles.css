@@ -189,3 +189,200 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   .day-button .city-label { margin-top: 7px; }
   .day-button .day-title { font-size: 13px; }
 }
+/* 9/21 一眼看懂行程：主資訊留在卡片，提醒收在可展開區塊。 */
+#sep21-klook-focus {
+  --focus-ink: #17202a;
+  --focus-muted: #59636f;
+  --focus-surface: #fffdf8;
+  --focus-line: #e8e1d5;
+  --focus-accent: #0d6b57;
+  --focus-accent-soft: #e8f5ef;
+  box-sizing: border-box;
+  max-width: 1080px;
+  margin: 1rem auto 1.5rem;
+  padding: 1.1rem;
+  border: 1px solid var(--focus-line);
+  border-radius: 18px;
+  background: var(--focus-surface);
+  box-shadow: 0 10px 30px rgba(41, 49, 58, 0.08);
+  color: var(--focus-ink);
+}
+
+#sep21-klook-focus *,
+#sep21-klook-focus *::before,
+#sep21-klook-focus *::after {
+  box-sizing: border-box;
+}
+
+.sep21-focus__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.sep21-focus__eyebrow {
+  margin: 0 0 0.3rem;
+  color: var(--focus-accent);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+.sep21-focus__title {
+  margin: 0;
+  font-size: clamp(1.22rem, 2.8vw, 1.7rem);
+  line-height: 1.25;
+}
+
+.sep21-focus__summary {
+  margin: 0.45rem 0 0;
+  color: var(--focus-muted);
+  font-size: 0.94rem;
+}
+
+.sep21-focus__status {
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.5rem 0.7rem;
+  background: var(--focus-accent-soft);
+  color: #075140;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sep21-focus__status[aria-pressed="true"] {
+  background: var(--focus-accent);
+  color: #fff;
+}
+
+.sep21-focus__timeline {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.55rem;
+  margin: 1rem 0 0;
+}
+
+.sep21-focus__stop {
+  min-width: 0;
+  padding: 0.78rem;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid #efe8dc;
+}
+
+.sep21-focus__stop time {
+  display: block;
+  margin-bottom: 0.2rem;
+  color: var(--focus-accent);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.sep21-focus__stop strong,
+.sep21-focus__stop span {
+  display: block;
+}
+
+.sep21-focus__stop strong {
+  font-size: 0.91rem;
+  line-height: 1.32;
+}
+
+.sep21-focus__stop span {
+  margin-top: 0.22rem;
+  color: var(--focus-muted);
+  font-size: 0.77rem;
+  line-height: 1.35;
+}
+
+.sep21-focus__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: center;
+  margin-top: 1rem;
+}
+
+.sep21-focus__book {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.5rem;
+  border-radius: 10px;
+  padding: 0.6rem 0.9rem;
+  background: var(--focus-accent);
+  color: #fff;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.sep21-focus__book:hover,
+.sep21-focus__book:focus-visible {
+  background: #075140;
+  color: #fff;
+}
+
+.sep21-focus__hint {
+  margin: 0;
+  color: var(--focus-muted);
+  font-size: 0.82rem;
+}
+
+.sep21-focus__details {
+  margin-top: 0.9rem;
+  border-top: 1px solid var(--focus-line);
+  color: var(--focus-muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.sep21-focus__details summary {
+  padding-top: 0.85rem;
+  color: var(--focus-ink);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sep21-focus__details ul {
+  margin: 0.6rem 0 0;
+  padding-left: 1.15rem;
+}
+
+.sep21-focus__details li + li {
+  margin-top: 0.36rem;
+}
+
+@media (max-width: 840px) {
+  .sep21-focus__timeline {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  #sep21-klook-focus {
+    margin-inline: 0;
+    border-radius: 14px;
+    padding: 0.9rem;
+  }
+
+  .sep21-focus__head {
+    flex-direction: column;
+  }
+
+  .sep21-focus__status {
+    align-self: flex-start;
+  }
+
+  .sep21-focus__timeline {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.42rem;
+  }
+
+  .sep21-focus__stop {
+    padding: 0.65rem;
+  }
+}
