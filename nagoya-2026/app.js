@@ -540,7 +540,25 @@ renderItinerary(); renderItineraryDateOptions(); renderCategories(); renderResou
   const renderFocusCard = () => {
     if (document.getElementById(cardId)) return true;
 
+    const isSep21 = (value) =>
+      /(?:2026[-/.]0?9[-/.]21|9\s*\/\s*21|9月\s*21日)/.test(value || "");
+    const dailyCard = Array.from(
+      document.querySelectorAll(
+        "[data-date], [data-day], .day-card, .daily-card, .itinerary-day, article, section"
+      )
+    )
+      .filter(
+        (element) =>
+          element.id !== cardId &&
+          !element.matches("button, a, option") &&
+          isSep21(
+            `${element.dataset.date || ""} ${element.dataset.day || ""} ${element.textContent}`
+          ) &&
+          element.textContent.length < 2400
+      )
+      .sort((a, b) => a.textContent.length - b.textContent.length)[0];
     const host =
+      dailyCard ||
       document.querySelector("#itinerary, [data-itinerary], main, .main-content, .app") ||
       document.body;
     if (!host) return false;
