@@ -308,27 +308,36 @@ function renderToday() {
 }
 
 function renderRouteMap() {
-  const days = itineraryDays().map((day) => ({ date:itineraryDateKey(day),label:day.date,city:overnightForDay(itineraryDateKey(day)) }));
-  const groups = [];
-  days.forEach((day) => {
-    const previous = groups[groups.length - 1];
-    if (previous && previous.city === day.city) previous.days.push(day);
-    else groups.push({ city:day.city,days:[day] });
+  const days = itineraryDays().map((day) => {
+    const date = itineraryDateKey(day);
+    return { date,label:day.date,weekday:day.day,daytime:day.city,night:overnightForDay(date) };
   });
-  $("#routeMapTrack").innerHTML = groups.map((group,index) => {
-    $("#routeMapTrack").removeAttribute("role");
-    const first = group.days[0].label;
-    const last = group.days[group.days.length - 1].label;
-    const range = group.days.length === 1 ? first : first + "–" + last;
-    return '<button type="button" class="route-stop" data-day="' + escapeAttr(group.days[0].date) +
-      '" style="--route-color:' + ROUTE_COLORS[index % ROUTE_COLORS.length] + ';--route-span:' + group.days.length + '">' +
-      '<span class="route-dot"></span><strong>' + escapeHtml(group.city) + '</strong><small>' + escapeHtml(range) +
-      '</small><em>' + group.days.length + ' 天</em></button>';
+  const routeMap = $("#routeMapTrack");
+  routeMap.removeAttribute("role");
+  routeMap.setAttribute("aria-label","12月19日至1月6日每天白天所在城市與晚上住宿城市");
+  const figure = routeMap.closest(".snow-route-map");
+  if (figure) {
+    const caption = figure.querySelector("figcaption");
+    const eyebrow = caption && caption.querySelector("small");
+    const title = caption && caption.querySelector("strong");
+    const note = caption && caption.querySelector("em");
+    if (eyebrow) eyebrow.textContent = "白天去向＋晚上住宿";
+    if (title) title.textContent = "每天在哪裡，一眼看清楚";
+    if (note) note.textContent = "點選任一天可打開完整行程";
+  }
+  routeMap.innerHTML = days.map((day,index) => {
+    const summary = day.label + " 週" + day.weekday + "，白天 " + day.daytime + "，晚上住宿 " + day.night;
+    return '<button type="button" class="route-day-card" data-day="' + escapeAttr(day.date) +
+      '" style="--route-color:' + ROUTE_COLORS[index % ROUTE_COLORS.length] + '" aria-label="' + escapeAttr(summary) + '">' +
+      '<span class="route-card-date"><strong>' + escapeHtml(day.label) + '</strong><small>週' + escapeHtml(day.weekday) + '</small></span>' +
+      '<span class="route-card-place route-card-day"><small>白天</small><strong>' + escapeHtml(day.daytime) + '</strong></span>' +
+      '<span class="route-card-arrow" aria-hidden="true">↓</span>' +
+      '<span class="route-card-place route-card-night"><small>晚上住宿</small><strong>' + escapeHtml(day.night) + '</strong></span></button>';
   }).join("");
   const plans = effectiveItineraryItems();
   $("#tripDayCount").textContent = String(days.length);
   $("#confirmedCount").textContent = String(plans.filter((item) => item.status === "confirmed").length);
-  $("#cityCount").textContent = String(new Set(days.map((item) => item.city)).size);
+  $("#cityCount").textContent = String(new Set(days.map((item) => item.night)).size);
   $("#pendingStatCount").textContent = String(plans.filter((item) => item.status === "pending").length);
 }
 
@@ -371,9 +380,11 @@ function renderDateStrip() {
   const index = days.findIndex((item) => itineraryDateKey(item) === state.selectedDayKey);
   $("#dayDateStrip").innerHTML = days.map((item) => {
     const key = itineraryDateKey(item);
+    const destination = item.city.split(/[→⇄]/).slice(-1)[0].trim();
     return '<button type="button" data-strip-day="' + key + '" class="' + (key === state.selectedDayKey ? "active" : "") +
-      '" aria-current="' + (key === state.selectedDayKey ? "date" : "false") + '"><small>' + escapeHtml(item.date) +
-      '</small><span>' + escapeHtml(item.city.split(/[→⇄]/).slice(-1)[0].trim()) + '</span></button>';
+      '" aria-current="' + (key === state.selectedDayKey ? "date" : "false") + '" aria-label="查看 ' +
+      escapeAttr(item.date + " 週" + item.day + " " + destination + " 的行程") + '"><small>' + escapeHtml(item.date) +
+      ' · 週' + escapeHtml(item.day) + '</small><span>' + escapeHtml(destination) + '</span></button>';
   }).join("");
   $("#previousDayButton").disabled = index <= 0;
   $("#nextDayButton").disabled = index < 0 || index >= days.length - 1;
@@ -657,8 +668,16 @@ function canOpenItineraryEditor() {
     return true;
   }
   if (state.user && state.itineraryAuthorized) return true;
+  if (state.user && state.resourceAuthorized) {
+    showToast("行程同步正在重新連線，這次修改會先保存在本機");
+    return true;
+  }
+  if (state.user) {
+    showToast("這個帳號沒有共同編輯權限");
+    return false;
+  }
   openShareDialog();
-  showToast(state.user ? "行程同步權限尚未就緒" : "請先登入再共同編輯行程");
+  showToast("請先登入再共同編輯行程");
   return false;
 }
 
