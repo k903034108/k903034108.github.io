@@ -22,6 +22,8 @@ const TRIP_EDITOR_UIDS = new Set([
   "vppVxbbeuSWpvwKfiI6M86xmsxk2",
   "hOiABKk0adcYs098cqrZyIs1KeC3"
 ]);
+const PENCIL_ICON = '<svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" focusable="false">' +
+  '<path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25Zm17.71-9.79a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83Z"/></svg>';
 
 const state = {
   tab:"today", category:"all", query:"", resources:[], itineraryItems:[],
@@ -34,6 +36,7 @@ const state = {
   deferredInstallPrompt:null, resourcePending:false, itineraryPending:false, lastSyncAt:0, toastAction:null,
   swipeStartX:0, swipeStartY:0, swipeBlocked:false, preserveDayOnClose:false, routeReady:false,
   resourceEditorBaseline:"", historyEntries:[], syncConflictRemotes:new Map(),
+  dayMeta:new Map(), unsubscribeDayMeta:null, editingDayMetaKey:null, dayMetaBaseline:"", dayMetaReturnKey:null,
 };
 
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -185,9 +188,33 @@ function itemsForDay(dateKey, includeHidden) {
       || timestampValue(a.createdAt) - timestampValue(b.createdAt));
 }
 
+function dayMetaFor(dateKey) {
+  return state.dayMeta.get(dateKey) || null;
+}
+
+// `title` 是第一版路線標題的欄位名稱，保留讀取相容性。
+function daytimeForDay(dateKey) {
+  const meta = dayMetaFor(dateKey);
+  const custom = meta ? String(meta.daytime || meta.title || "").trim() : "";
+  if (custom) return custom;
+  const day = tripDay(dateKey);
+  return day ? day.city : dateKey;
+}
+
 function overnightForDay(dateKey) {
+  const meta = dayMetaFor(dateKey);
+  const custom = meta ? String(meta.night || "").trim() : "";
+  if (custom) return custom;
   const explicit = itemsForDay(dateKey).filter((item) => item.overnightCity).slice(-1)[0];
   return explicit ? explicit.overnightCity : DEFAULT_OVERNIGHT_CITIES[dateKey] || "住宿未定";
+}
+
+function dayHeadline(dateKey) {
+  const meta = dayMetaFor(dateKey);
+  const custom = meta ? String(meta.dayTitle || "").trim() : "";
+  if (custom) return custom;
+  const day = tripDay(dateKey);
+  return day ? day.title : "當天行程";
 }
 
 function lodgingForDay(dateKey) {
@@ -273,7 +300,7 @@ function renderToday() {
   $("#todayPhase").textContent = phaseText;
   $("#todayPhase").dataset.phase = moment.phase;
   $("#todayDate").textContent = day ? day.date : moment.date;
-  $("#todayCity").textContent = day ? day.city : city;
+  $("#todayCity").textContent = day ? daytimeForDay(moment.date) : city;
   if (moment.phase === "pretrip") {
     $("#todayHeadline").textContent = "下一站，日本雪旅";
     $("#todaySummary").textContent = "離出發還有準備時間；先把待確認票券與住宿補齊。";
@@ -283,7 +310,7 @@ function renderToday() {
     $("#todaySummary").textContent = "所有行程仍保留在資料庫，方便回顧與下次複製。";
     $("#nextActionKicker").textContent = "最後一段";
   } else {
-    $("#todayHeadline").textContent = day ? day.title : "今天的行程";
+    $("#todayHeadline").textContent = day ? dayHeadline(moment.date) : "今天的行程";
     $("#todaySummary").textContent = day ? day.detail : "打開今天的安排。";
     $("#nextActionKicker").textContent = next && itineraryTimeValue(next) <= moment.minutes ? "現在／接下來" : "下一個行程";
   }
@@ -317,10 +344,31 @@ function renderToday() {
   renderSyncSummary();
 }
 
+// Firestore 的 updatedAt 是 Timestamp，本機草稿是 ISO 字串，兩種都要能比。
+function latestContentUpdate() {
+  let newest = 0;
+  const consider = (value) => {
+    if (!value) return;
+    const ms = typeof value.toMillis === "function" ? value.toMillis() : Date.parse(value);
+    if (Number.isFinite(ms) && ms > newest) newest = ms;
+  };
+  effectiveItineraryItems().forEach((item) => consider(item.updatedAt));
+  state.dayMeta.forEach((meta) => consider(meta.updatedAt));
+  return newest;
+}
+
+function renderFreshness() {
+  const newest = latestContentUpdate();
+  $("#tripFreshness").textContent = newest
+    ? "最後更新 · " + new Date(newest).toLocaleDateString("zh-TW",{ month:"numeric",day:"numeric" })
+    : "行程持續更新中";
+}
+
 function renderRouteMap() {
+  const editable = canModifyContent();
   const days = itineraryDays().map((day) => {
     const date = itineraryDateKey(day);
-    return { date,label:day.date,weekday:day.day,daytime:day.city,night:overnightForDay(date) };
+    return { date,label:day.date,weekday:day.day,daytime:daytimeForDay(date),night:overnightForDay(date) };
   });
   const routeMap = $("#routeMapTrack");
   routeMap.removeAttribute("role");
@@ -337,13 +385,22 @@ function renderRouteMap() {
   }
   routeMap.innerHTML = days.map((day,index) => {
     const summary = day.label + " 週" + day.weekday + "，白天 " + day.daytime + "，晚上住宿 " + day.night;
-    return '<button type="button" class="route-day-card" data-day="' + escapeAttr(day.date) +
-      '" style="--route-color:' + ROUTE_COLORS[index % ROUTE_COLORS.length] + '" aria-label="' + escapeAttr(summary) + '">' +
+    return '<article class="route-day-card" data-route-day="' + escapeAttr(day.date) +
+      '" style="--route-color:' + ROUTE_COLORS[index % ROUTE_COLORS.length] + '">' +
+      '<button type="button" class="route-day-open" data-day="' + escapeAttr(day.date) +
+      '" aria-label="打開 ' + escapeAttr(summary) + ' 的完整行程">' +
       '<span class="route-card-date"><strong>' + escapeHtml(day.label) + '</strong><small>週' + escapeHtml(day.weekday) + '</small></span>' +
+      '<span class="route-card-legs">' +
       '<span class="route-card-place route-card-day"><small>白天</small><strong>' + escapeHtml(day.daytime) + '</strong></span>' +
       '<span class="route-card-arrow" aria-hidden="true">↓</span>' +
-      '<span class="route-card-place route-card-night"><small>晚上住宿</small><strong>' + escapeHtml(day.night) + '</strong></span></button>';
+      '<span class="route-card-place route-card-night"><small>晚上住宿</small><strong>' + escapeHtml(day.night) + '</strong></span>' +
+      '</span></button>' +
+      '<button type="button" class="icon-edit-button route-day-edit" data-route-edit="' + escapeAttr(day.date) +
+      '" aria-label="編輯 ' + escapeAttr(day.label) + ' 的白天去向與住宿"' + (editable ? "" : " hidden") + '>' +
+      PENCIL_ICON + '</button>' +
+      '</article>';
   }).join("");
+  renderFreshness();
   const plans = effectiveItineraryItems();
   $("#tripDayCount").textContent = String(days.length);
   $("#confirmedCount").textContent = String(plans.filter((item) => item.status === "confirmed").length);
@@ -356,13 +413,14 @@ function renderItinerary() {
     const dateKey = itineraryDateKey(item);
     const plans = itemsForDay(dateKey);
     const pending = plans.filter((plan) => plan.status === "pending").length;
+    const city = daytimeForDay(dateKey);
     return '<button class="day-button tone-' + escapeAttr(item.tone) + '" type="button" data-day="' + dateKey +
-      '" data-testid="day-' + dateKey + '" aria-label="查看 ' + escapeAttr(item.date + " " + item.city) +
+      '" data-testid="day-' + dateKey + '" aria-label="查看 ' + escapeAttr(item.date + " " + city) +
       ' 的逐時行程" aria-haspopup="dialog" aria-controls="dayDialog" aria-expanded="' +
       String(state.selectedDayKey === dateKey && $("#dayDialog").open) + '">' +
       '<span class="day-button-top"><strong>' + escapeHtml(item.date) + '</strong><span class="weekday">週' +
-      escapeHtml(item.day) + '</span></span><span class="city-label">' + escapeHtml(item.city) +
-      '</span><span class="day-title">' + escapeHtml(item.title) + '</span><span class="day-button-meta"><span>' +
+      escapeHtml(item.day) + '</span></span><span class="city-label">' + escapeHtml(city) +
+      '</span><span class="day-title">' + escapeHtml(dayHeadline(dateKey)) + '</span><span class="day-button-meta"><span>' +
       plans.length + ' 個時段' + (pending ? ' · ' + pending + ' 待確認' : '') +
       '</span><span>打開行程 <b aria-hidden="true">›</b></span></span></button>';
   }).join("");
@@ -390,7 +448,7 @@ function renderDateStrip() {
   const index = days.findIndex((item) => itineraryDateKey(item) === state.selectedDayKey);
   $("#dayDateStrip").innerHTML = days.map((item) => {
     const key = itineraryDateKey(item);
-    const destination = item.city.split(/[→⇄]/).slice(-1)[0].trim();
+    const destination = daytimeForDay(key).split(/[→⇄]/).slice(-1)[0].trim();
     return '<button type="button" data-strip-day="' + key + '" class="' + (key === state.selectedDayKey ? "active" : "") +
       '" aria-current="' + (key === state.selectedDayKey ? "date" : "false") + '" aria-label="查看 ' +
       escapeAttr(item.date + " 週" + item.day + " " + destination + " 的行程") + '"><small>' + escapeHtml(item.date) +
@@ -406,8 +464,10 @@ function renderDayDetails() {
   if (!day) return;
   const plans = itemsForDay(state.selectedDayKey);
   const labels = { confirmed:"已確認",current:"目前安排",pending:"待再確認" };
-  $("#dayDialogDate").textContent = day.date + " · 週" + day.day + " · " + day.city;
-  $("#dayDialogTitle").textContent = day.title;
+  $("#dayDialogDate").textContent = day.date + " · 週" + day.day + " · " + daytimeForDay(state.selectedDayKey);
+  $("#dayDialogTitle").textContent = dayHeadline(state.selectedDayKey);
+  $("#dayDialogTitleEdit").hidden = !canModifyContent();
+  $("#dayDialogTitleEdit").dataset.routeEdit = state.selectedDayKey;
   $("#dayDialogCity").textContent = "住宿：" + overnightForDay(state.selectedDayKey) + " · " + day.stay;
   renderDateStrip();
   const warnings = warningCards(plans);
@@ -476,9 +536,10 @@ function moveDay(direction) {
 }
 
 function renderItineraryDateOptions() {
-  $("#itineraryDate").innerHTML = itineraryDays().map((item) =>
-    '<option value="' + itineraryDateKey(item) + '">' + escapeHtml(item.date + "（週" + item.day + "） · " + item.city) + "</option>"
-  ).join("");
+  $("#itineraryDate").innerHTML = itineraryDays().map((item) => {
+    const key = itineraryDateKey(item);
+    return '<option value="' + key + '">' + escapeHtml(item.date + "（週" + item.day + "） · " + daytimeForDay(key)) + "</option>";
+  }).join("");
 }
 
 function sortedResources(resources) {
@@ -678,7 +739,7 @@ function canModifyContent() {
 
 function updateEditAffordances() {
   const allowed = canModifyContent();
-  $$('[data-action="add"],[data-action="add-itinerary"]').forEach((button) => { button.hidden = !allowed; });
+  $$('[data-action="add"],[data-action="add-itinerary"],[data-route-edit]').forEach((button) => { button.hidden = !allowed; });
   $(".floating-add").hidden = state.tab !== "library" || !allowed;
 }
 
@@ -703,6 +764,92 @@ function canOpenTripEditor() {
 
 function formSnapshot(form) {
   return JSON.stringify(Array.from(new FormData(form).entries()));
+}
+
+function openDayMetaEditor(dateKey) {
+  const day = tripDay(dateKey);
+  if (!day || !canOpenTripEditor()) return;
+  state.editingDayMetaKey = dateKey;
+  const meta = dayMetaFor(dateKey) || {};
+  const form = $("#dayMetaForm");
+  form.reset();
+  $("#dayMetaDate").textContent = day.date + "（週" + day.day + "）";
+  form.elements.daytime.value = String(meta.daytime || meta.title || "");
+  form.elements.night.value = String(meta.night || "");
+  form.elements.dayTitle.value = String(meta.dayTitle || "");
+  // placeholder 顯示留白後會回到的預設值，使用者才知道清空代表什麼。
+  form.elements.daytime.placeholder = day.city || "";
+  form.elements.night.placeholder = DEFAULT_OVERNIGHT_CITIES[dateKey] || "住宿未定";
+  form.elements.dayTitle.placeholder = day.title || "";
+  $("#dayMetaResetButton").hidden = !dayMetaFor(dateKey);
+  // 從當天行程裡按鉛筆時，關閉這張 sheet 後要回到原本那天。
+  state.dayMetaReturnKey = $("#dayDialog").open ? state.selectedDayKey : null;
+  closeOpenDialogs($("#dayMetaDialog"));
+  $("#dayMetaDialog").showModal();
+  state.dayMetaBaseline = formSnapshot(form);
+}
+
+function closeDayMetaEditor(force) {
+  const dirty = state.dayMetaBaseline && formSnapshot($("#dayMetaForm")) !== state.dayMetaBaseline;
+  if (!force && dirty && !confirm("尚未儲存的變更會消失，確定關閉嗎？")) return false;
+  state.dayMetaBaseline = "";
+  $("#dayMetaDialog").close();
+  return true;
+}
+
+// dayMeta 只存在雲端，因為它是兩個人共用的路線描述，沒有本機 fallback。
+async function writeDayMeta(dateKey, fields) {
+  if (!state.firebase || !canEditTrip()) {
+    showToast("需要以已授權的帳號登入才能修改路線");
+    return false;
+  }
+  const f = state.firebase.firestore;
+  const ref = f.doc(state.firebase.db,"boards",BOARD_ID,"dayMeta",dateKey);
+  setSyncStatus("saving");
+  try {
+    if (fields) {
+      const payload = Object.assign({ date:dateKey },fields,{
+        updatedAt:f.serverTimestamp(),
+        updatedByUid:state.user.uid
+      });
+      await withTimeout(f.setDoc(ref,payload,{ merge:true }));
+    } else {
+      await withTimeout(f.deleteDoc(ref));
+    }
+    return true;
+  } catch (error) {
+    console.error("Unable to save day meta",error);
+    showToast("儲存失敗，請確認網路連線與編輯權限");
+    return false;
+  }
+}
+
+async function submitDayMeta(event) {
+  event.preventDefault();
+  const dateKey = state.editingDayMetaKey;
+  if (!tripDay(dateKey)) return;
+  const form = new FormData($("#dayMetaForm"));
+  const daytime = String(form.get("daytime") || "").trim().slice(0,60);
+  const saved = await writeDayMeta(dateKey,{
+    daytime,
+    // 同步寫回第一版的欄位名稱，避免尚未更新的分頁讀到過期標題。
+    title:daytime,
+    night:String(form.get("night") || "").trim().slice(0,40),
+    dayTitle:String(form.get("dayTitle") || "").trim().slice(0,80)
+  });
+  if (!saved) return;
+  state.dayMetaBaseline = "";
+  $("#dayMetaDialog").close();
+  showToast("這天的路線已更新");
+}
+
+async function resetDayMeta() {
+  const dateKey = state.editingDayMetaKey;
+  if (!tripDay(dateKey) || !confirm("確定要把這天的白天去向、住宿與標題都恢復成預設嗎？")) return;
+  if (!(await writeDayMeta(dateKey,null))) return;
+  state.dayMetaBaseline = "";
+  $("#dayMetaDialog").close();
+  showToast("已恢復成預設內容");
 }
 
 function isItineraryFormDirty() {
@@ -1210,8 +1357,10 @@ async function connectFirebase() {
       state.itineraryReadable = false;
       if (state.unsubscribeResources) state.unsubscribeResources();
       if (state.unsubscribeItinerary) state.unsubscribeItinerary();
+      if (state.unsubscribeDayMeta) state.unsubscribeDayMeta();
       state.unsubscribeResources = null;
       state.unsubscribeItinerary = null;
+      state.unsubscribeDayMeta = null;
       if (state.signingOut) return;
       if (user) $("#currentAvatar").textContent = initials(user.displayName || user.email || "我");
       // 未登入訪客也要訂閱，否則會停留在硬編碼的 seed 行程。寫入權限另由 canEditTrip() 判斷。
@@ -1231,6 +1380,17 @@ function listenToCloud() {
   const f = state.firebase.firestore;
   const resourceRef = f.collection(state.firebase.db,"boards",BOARD_ID,"resources");
   const itineraryRef = f.collection(state.firebase.db,"boards",BOARD_ID,"itineraryItems");
+  const dayMetaRef = f.collection(state.firebase.db,"boards",BOARD_ID,"dayMeta");
+  state.unsubscribeDayMeta = f.onSnapshot(dayMetaRef,(snapshot) => {
+    state.dayMeta = new Map(snapshot.docs.map((item) => [item.id,Object.assign({ id:item.id },item.data())]));
+    setSyncStatus(cloudSyncMode(snapshot));
+    renderAll();
+    if ($("#dayDialog").open) renderDayDetails();
+  },(error) => {
+    console.warn("Day meta listener",error);
+    state.dayMeta = new Map();
+    renderAll();
+  });
   state.unsubscribeResources = f.onSnapshot(resourceRef,{ includeMetadataChanges:true },async (snapshot) => {
     state.resourceReadable = true;
     state.resourceAuthorized = canEditTrip();
@@ -1363,7 +1523,8 @@ async function secureGoogleSignOut() {
   state.signingOut = true;
   if (state.unsubscribeResources) state.unsubscribeResources();
   if (state.unsubscribeItinerary) state.unsubscribeItinerary();
-  state.unsubscribeResources = null; state.unsubscribeItinerary = null;
+  if (state.unsubscribeDayMeta) state.unsubscribeDayMeta();
+  state.unsubscribeResources = null; state.unsubscribeItinerary = null; state.unsubscribeDayMeta = null;
   try {
     await firebase.authModule.signOut(firebase.auth);
     if (firebase.firestore.terminate) await withTimeout(firebase.firestore.terminate(firebase.db),5000);
@@ -1636,6 +1797,8 @@ function bindEvents() {
       if (entry && entry.snapshot) { fillItineraryForm(entry.snapshot,entry.snapshot.date); showToast("已載入舊版本，按儲存才會套用"); }
       return;
     }
+    const routeEdit = event.target.closest("[data-route-edit]");
+    if (routeEdit) { openDayMetaEditor(routeEdit.dataset.routeEdit || state.selectedDayKey); return; }
     const addItinerary = event.target.closest('[data-action="add-itinerary"]');
     if (addItinerary) { openItineraryEditor(null,state.selectedDayKey,addItinerary.closest("#dayDialog") ? "day" : "page"); return; }
     const edit = event.target.closest("[data-itinerary-edit]");
@@ -1679,6 +1842,17 @@ function bindEvents() {
   $("#resourceForm").addEventListener("submit",submitResource);
   $("#deleteButton").addEventListener("click",deleteCurrentResource);
   $("#itineraryForm").addEventListener("submit",submitItineraryItem);
+  $("#dayMetaForm").addEventListener("submit",submitDayMeta);
+  $("#dayMetaResetButton").addEventListener("click",resetDayMeta);
+  $("#dayMetaDialog").addEventListener("cancel",(event) => {
+    event.preventDefault();
+    closeDayMetaEditor(false);
+  });
+  $("#dayMetaDialog").addEventListener("close",() => {
+    const returnKey = state.dayMetaReturnKey;
+    state.dayMetaReturnKey = null;
+    if (returnKey && tripDay(returnKey)) openDayDialog(returnKey,state.highlightedItemId,{ push:false });
+  });
   $("#deleteItineraryButton").addEventListener("click",deleteCurrentItineraryItem);
   $("#restoreItineraryButton").addEventListener("click",restoreBaseItineraryItem);
   $("#duplicateItineraryButton").addEventListener("click",duplicateItineraryItem);
@@ -1705,12 +1879,14 @@ function bindEvents() {
   $$("[data-close-dialog]").forEach((button) => button.addEventListener("click",() => {
     if (button.dataset.closeDialog === "itineraryEditorDialog") closeItineraryEditor(false);
     else if (button.dataset.closeDialog === "editorDialog") closeResourceEditor(false);
+    else if (button.dataset.closeDialog === "dayMetaDialog") closeDayMetaEditor(false);
     else document.getElementById(button.dataset.closeDialog).close();
   }));
   $$("dialog").forEach((dialog) => dialog.addEventListener("click",(event) => {
     if (event.target !== dialog) return;
     if (dialog.id === "itineraryEditorDialog") closeItineraryEditor(false);
-    else if (dialog.id === "editorDialog") closeResourceEditor(false); else dialog.close();
+    else if (dialog.id === "editorDialog") closeResourceEditor(false);
+    else if (dialog.id === "dayMetaDialog") closeDayMetaEditor(false); else dialog.close();
   }));
   $("#itineraryEditorDialog").addEventListener("cancel",(event) => {
     event.preventDefault();
@@ -1774,198 +1950,3 @@ initializeRoute();
 registerPwa();
 connectFirebase();
 
-/* ROUTE_TITLE_EDITOR_V1 */
-const routeTitleCollection = (_unusedDb, ...segments) =>
-  state.firebase.firestore.collection(state.firebase.db, ...segments);
-const routeTitleDoc = (_unusedDb, ...segments) =>
-  state.firebase.firestore.doc(state.firebase.db, ...segments);
-const routeTitleOnSnapshot = (...args) => state.firebase.firestore.onSnapshot(...args);
-const routeTitleServerTimestamp = () => state.firebase.firestore.serverTimestamp();
-const routeTitleSetDoc = (...args) => state.firebase.firestore.setDoc(...args);
-
-const routeTitleValues = new Map();
-let routeTitleUnsubscribe = null;
-
-function routeTitleCanEdit() {
-  return canEditTrip();
-}
-
-function routeTitleNotify(message) {
-  if (typeof showToast === "function") {
-    showToast(message);
-    return;
-  }
-  window.alert(message);
-}
-
-function routeTitleDefault(card, date) {
-  const matchingDay = tripDay(date);
-  if (matchingDay && String(matchingDay.city || "").trim()) {
-    return String(matchingDay.city).trim();
-  }
-
-  const aria = card.getAttribute("aria-label") || "";
-  const daytimeMatch = aria.match(/白天\s*([^，,]+?)(?=，|,|晚上|$)/);
-  return daytimeMatch && daytimeMatch[1].trim()
-    ? daytimeMatch[1].trim()
-    : "未命名行程";
-}
-
-function routeTitleStartEditing(card, control, date, defaultTitle) {
-  if (!routeTitleCanEdit()) {
-    routeTitleNotify("請先使用有編輯權限的帳號登入");
-    return;
-  }
-
-  const currentTitle = String(routeTitleValues.get(date)?.title || defaultTitle).trim();
-  const form = document.createElement("form");
-  form.className = "route-title-inline-form";
-  form.setAttribute("aria-label", `編輯 ${date} 的路線標題`);
-
-  const input = document.createElement("input");
-  input.className = "route-title-input";
-  input.type = "text";
-  input.maxLength = 60;
-  input.required = true;
-  input.value = currentTitle;
-  input.setAttribute("aria-label", "每日路線標題");
-
-  const saveButton = document.createElement("button");
-  saveButton.type = "submit";
-  saveButton.className = "route-title-save-button";
-  saveButton.textContent = "儲存";
-
-  const cancelButton = document.createElement("button");
-  cancelButton.type = "button";
-  cancelButton.className = "route-title-cancel-button";
-  cancelButton.textContent = "取消";
-
-  form.append(input, saveButton, cancelButton);
-  control.replaceChildren(form);
-  input.focus();
-  input.select();
-
-  const restore = () => {
-    control.replaceChildren();
-    delete control.dataset.routeTitleSignature;
-    routeTitleEnhanceCards();
-  };
-  cancelButton.addEventListener("click", (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    restore();
-  });
-
-  form.addEventListener("submit", async (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    const title = input.value.trim();
-    if (!title) {
-      input.focus();
-      return;
-    }
-
-    saveButton.disabled = true;
-    cancelButton.disabled = true;
-    input.disabled = true;
-    try {
-      await routeTitleSetDoc(
-        routeTitleDoc(null, "boards", "tohoku-2026", "dayMeta", date),
-        {
-          date,
-          title,
-          updatedAt: routeTitleServerTimestamp(),
-          updatedByUid: state.user.uid
-        },
-        { merge: true }
-      );
-      routeTitleValues.set(date, { date, title });
-      routeTitleNotify("這天的路線標題已更新");
-      restore();
-    } catch (error) {
-      console.error("Unable to save route title", error);
-      routeTitleNotify("標題儲存失敗，請確認已登入且 Firebase 規則已發布");
-      saveButton.disabled = false;
-      cancelButton.disabled = false;
-      input.disabled = false;
-      input.focus();
-    }
-  });
-}
-
-function routeTitleEnhanceCards() {
-  document.querySelectorAll(".route-day-card[data-day]").forEach((card) => {
-    const date = String(card.dataset.day || "").trim();
-    if (!date) return;
-
-    let control = card.querySelector(":scope > .route-title-control");
-    if (!control) {
-      control = document.createElement("div");
-      control.className = "route-title-control";
-      control.addEventListener("click", (event) => event.stopPropagation());
-      const heading = card.querySelector(":scope > .route-day-head, :scope > .route-day-date");
-      if (heading) heading.insertAdjacentElement("afterend", control);
-      else card.prepend(control);
-    }
-
-    if (control.querySelector(".route-title-inline-form")) return;
-
-    const defaultTitle = routeTitleDefault(card, date);
-    const customTitle = String(routeTitleValues.get(date)?.title || "").trim();
-    const canEdit = routeTitleCanEdit();
-    const signature = (customTitle || defaultTitle) + "|" + (canEdit ? "edit" : "read");
-    if (control.dataset.routeTitleSignature === signature) return;
-    control.dataset.routeTitleSignature = signature;
-    const label = document.createElement("strong");
-    label.className = "route-title-label";
-    if (!customTitle) label.classList.add("is-default");
-    label.textContent = customTitle || defaultTitle;
-    control.replaceChildren(label);
-
-    if (canEdit) {
-      const editButton = document.createElement("button");
-      editButton.type = "button";
-      editButton.className = "route-title-edit-button";
-      editButton.textContent = "編輯";
-      editButton.setAttribute("aria-label", `編輯 ${date} 的路線標題`);
-      editButton.addEventListener("click", (event) => {
-        event.preventDefault();
-        event.stopPropagation();
-        routeTitleStartEditing(card, control, date, defaultTitle);
-      });
-      control.append(editButton);
-    }
-  });
-}
-
-function routeTitleInitialize() {
-  if (routeTitleUnsubscribe) return;
-  if (!state.firebase || !state.firebase.firestore || !state.firebase.db) {
-    window.setTimeout(routeTitleInitialize, 500);
-    return;
-  }
-  const routeTitlesRef = routeTitleCollection(null, "boards", "tohoku-2026", "dayMeta");
-  routeTitleUnsubscribe = routeTitleOnSnapshot(
-    routeTitlesRef,
-    (snapshot) => {
-      routeTitleValues.clear();
-      snapshot.forEach((snapshotDoc) => {
-        const value = snapshotDoc.data() || {};
-        routeTitleValues.set(snapshotDoc.id, value);
-      });
-      routeTitleEnhanceCards();
-    },
-    (error) => console.warn("Unable to load route titles", error)
-  );
-
-  const observer = new MutationObserver(() => routeTitleEnhanceCards());
-  observer.observe(document.body, { childList: true, subtree: true });
-  window.addEventListener("focus", routeTitleEnhanceCards);
-  routeTitleEnhanceCards();
-}
-
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", routeTitleInitialize, { once: true });
-} else {
-  routeTitleInitialize();
-}

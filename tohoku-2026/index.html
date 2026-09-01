@@ -118,7 +118,7 @@
         <section class="panel trip-dashboard" aria-labelledby="overviewTitle">
           <div class="section-heading">
             <div><p class="eyebrow">TRIP AT A GLANCE</p><h2 id="overviewTitle">這趟雪旅的路線</h2></div>
-            <span class="status-chip">最新行程 · 8/24</span>
+            <span class="status-chip" id="tripFreshness">行程持續更新中</span>
           </div>
           <figure class="snow-route-map" aria-labelledby="routeMapTitle">
             <figcaption>
@@ -224,7 +224,10 @@
       <header class="day-modal-header">
         <div>
           <p class="eyebrow" id="dayDialogDate">DAY PLAN</p>
-          <h2 id="dayDialogTitle">當天行程</h2>
+          <div class="day-modal-title-row">
+            <h2 id="dayDialogTitle">當天行程</h2>
+            <button class="icon-edit-button" type="button" id="dayDialogTitleEdit" data-route-edit="" aria-label="編輯這天的標題與路線" hidden><svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true" focusable="false"><path fill="currentColor" d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25Zm17.71-9.79a1 1 0 0 0 0-1.41l-2.34-2.34a1 1 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83Z"/></svg></button>
+          </div>
           <p id="dayDialogCity"></p>
         </div>
         <button class="dialog-close" type="button" data-close-dialog="dayDialog" aria-label="關閉當天行程">×</button>
@@ -288,6 +291,25 @@
           <button id="restoreItineraryButton" type="button" hidden>還原原始安排</button>
         </div>
         <button class="delete-button" id="deleteItineraryButton" type="button" hidden>取消這筆行程</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog class="sheet" id="dayMetaDialog" aria-labelledby="dayMetaTitle">
+    <form method="dialog" class="sheet-shell" id="dayMetaForm">
+      <div class="sheet-grabber" aria-hidden="true"></div>
+      <header class="sheet-header">
+        <button type="button" data-close-dialog="dayMetaDialog">取消</button>
+        <h2 id="dayMetaTitle">編輯這天</h2>
+        <button class="sheet-save" type="submit">儲存</button>
+      </header>
+      <div class="editor-form">
+        <p class="day-meta-date" id="dayMetaDate"></p>
+        <label><span>白天去向</span><input id="dayMetaDaytime" name="daytime" maxlength="60"></label>
+        <label><span>晚上住宿城市</span><input id="dayMetaNight" name="night" maxlength="40"></label>
+        <label><span>當天標題</span><input id="dayMetaDayTitle" name="dayTitle" maxlength="80"></label>
+        <p class="form-sync-note">留白會恢復成灰色提示裡的預設內容。儲存後會即時同步給兩個人。</p>
+        <button class="delete-button" id="dayMetaResetButton" type="button" hidden>全部恢復預設</button>
       </div>
     </form>
   </dialog>
