@@ -37,6 +37,7 @@ const state = {
   swipeStartX:0, swipeStartY:0, swipeBlocked:false, preserveDayOnClose:false, routeReady:false,
   resourceEditorBaseline:"", historyEntries:[], syncConflictRemotes:new Map(),
   dayMeta:new Map(), unsubscribeDayMeta:null, editingDayMetaKey:null, dayMetaBaseline:"", dayMetaReturnKey:null,
+  showAllPending:false,
 };
 
 const $ = (selector, root = document) => root.querySelector(selector);
@@ -330,17 +331,22 @@ function renderToday() {
   $("#todayStayCopy").dataset.value = lodging && lodging.location ? lodging.location : city;
 
   const pending = effectiveItineraryItems().filter((item) => item.status === "pending");
-  const relevant = pending
+  const upcoming = pending
     .sort((a,b) => a.date.localeCompare(b.date) || itineraryTimeValue(a) - itineraryTimeValue(b))
-    .filter((item) => moment.phase !== "active" || item.date >= moment.date)
-    .slice(0,5);
+    .filter((item) => moment.phase !== "active" || item.date >= moment.date);
+  const relevant = state.showAllPending ? upcoming : upcoming.slice(0,5);
+  const hiddenCount = upcoming.length - relevant.length;
   $("#pendingCount").textContent = pending.length + " 項";
   $("#attentionList").innerHTML = relevant.length ? relevant.map((item) =>
     '<button type="button" class="attention-item" data-search-itinerary="' + escapeAttr(item.id) + '">' +
     '<span class="attention-date">' + escapeHtml(dateLabel(item.date)) + '</span><span><strong>' +
     escapeHtml(item.title) + '</strong><small>' + escapeHtml(item.notes || item.location || "尚待確認") +
     '</small></span><b aria-hidden="true">›</b></button>'
-  ).join("") : '<div class="attention-empty"><span>✓</span><p>目前沒有待確認事項。</p></div>';
+  ).join("") + (hiddenCount > 0 ?
+    '<button type="button" class="attention-more" data-toggle-pending="1">查看全部 ' + upcoming.length + ' 項 ›</button>'
+    : state.showAllPending && upcoming.length > 5 ?
+    '<button type="button" class="attention-more" data-toggle-pending="1">收合清單</button>' : '')
+    : '<div class="attention-empty"><span>✓</span><p>目前沒有待確認事項。</p></div>';
   renderSyncSummary();
 }
 
@@ -1809,6 +1815,8 @@ function bindEvents() {
       if (item) { setTab("itinerary",{ push:true,keepScroll:true }); openDayDialog(item.date,item.id,{ push:true }); }
       return;
     }
+    const togglePending = event.target.closest("[data-toggle-pending]");
+    if (togglePending) { state.showAllPending = !state.showAllPending; renderToday(); return; }
     const nav = event.target.closest("[data-nav-item]");
     if (nav) { openNavigation(itineraryItemById(nav.dataset.navItem)); return; }
     const copyLocation = event.target.closest("[data-copy-location]");

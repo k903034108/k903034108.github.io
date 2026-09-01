@@ -65,7 +65,7 @@ textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
   justify-content: space-between;
   gap: 22px;
 }
-.today-command h1 { margin: 0; font-size: clamp(38px,6vw,64px); line-height: 1; letter-spacing: -.055em; }
+.today-command h1 { margin: 0; font-size: clamp(38px,6vw,64px); line-height: 1; letter-spacing: -.02em; }
 .today-command-top > div:first-child > p:last-child {
   max-width: 680px;
   margin: 16px 0 0;
@@ -135,8 +135,24 @@ textarea:focus-visible, summary:focus-visible, [tabindex]:focus-visible {
   font-weight: 720;
   cursor: pointer;
 }
-.today-attention { padding: 0 4px; }
+.today-attention { padding: 0 4px; scroll-margin-top: calc(100px + env(safe-area-inset-top)); }
 .attention-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 10px; }
+.attention-more {
+  grid-column: 1/-1;
+  min-height: 46px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--blue);
+  font-weight: 650;
+  font-size: 14px;
+  text-align: center;
+  background: rgba(0,122,255,.08);
+  cursor: pointer;
+  transition: transform .2s ease;
+}
+.attention-more:hover { transform: translateY(-1px); }
+.attention-more:active { transform: scale(.98); }
 .attention-item {
   min-height: 94px;
   padding: 15px;
