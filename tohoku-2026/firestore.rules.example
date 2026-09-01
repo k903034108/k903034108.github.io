@@ -2,22 +2,29 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    function isBoardMember(boardId) {
+    // 公開讀取是刻意的：未登入的訪客也要看到最新行程與路線標題。
+    // 寫入只開放給這兩個 UID，這裡才是真正的安全邊界。
+    function isTripEditor() {
       return request.auth != null
-        && exists(/databases/$(database)/documents/boards/$(boardId)/members/$(request.auth.uid));
+        && request.auth.uid in [
+          'vppVxbbeuSWpvwKfiI6M86xmsxk2',
+          'hOiABKk0adcYs098cqrZyIs1KeC3'
+        ];
     }
 
-    match /boards/{boardId}/resources/{resourceId} {
-      allow read, create, update, delete: if isBoardMember(boardId);
+    match /boards/tohoku-2026/resources/{resourceId} {
+      allow read: if true;
+      allow create, update, delete: if isTripEditor();
     }
 
-    match /boards/{boardId}/itineraryItems/{itemId} {
-      allow read, create, update, delete: if isBoardMember(boardId);
+    match /boards/tohoku-2026/itineraryItems/{itemId} {
+      allow read: if true;
+      allow create, update, delete: if isTripEditor();
     }
 
-    match /boards/{boardId}/members/{uid} {
-      allow read: if request.auth != null && request.auth.uid == uid;
-      allow write: if false;
+    match /boards/tohoku-2026/dayMeta/{dateId} {
+      allow read: if true;
+      allow create, update, delete: if isTripEditor();
     }
 
     match /{document=**} {

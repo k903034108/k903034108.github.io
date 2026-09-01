@@ -17,12 +17,18 @@ const DEFAULT_OVERNIGHT_CITIES = {
   "2026-12-31":"東京","2027-01-01":"東京","2027-01-02":"東京","2027-01-03":"橫濱",
   "2027-01-04":"橫濱","2027-01-05":"成田","2027-01-06":"回家"
 };
+// Firestore 規則同樣以這兩個 UID 為寫入邊界；前端只用來決定 UI，不是安全邊界。
+const TRIP_EDITOR_UIDS = new Set([
+  "vppVxbbeuSWpvwKfiI6M86xmsxk2",
+  "hOiABKk0adcYs098cqrZyIs1KeC3"
+]);
 
 const state = {
   tab:"today", category:"all", query:"", resources:[], itineraryItems:[],
   editingId:null, editingItineraryId:null, selectedDayKey:null, highlightedItemId:null,
   backend:"local", firebase:null, firebaseError:false, user:null, authorized:false,
   resourceAuthorized:false, itineraryAuthorized:false, migratingItinerary:false,
+  resourceReadable:false, itineraryReadable:false, signingOut:false,
   unsubscribeResources:null, unsubscribeItinerary:null, returnToDayAfterEditor:false,
   editorBaseline:"", editorRevision:0, conflictItem:null, keepMineAfterConflict:false,
   deferredInstallPrompt:null, resourcePending:false, itineraryPending:false, lastSyncAt:0, toastAction:null,
@@ -32,6 +38,10 @@ const state = {
 
 const $ = (selector, root = document) => root.querySelector(selector);
 const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+
+function canEditTrip() {
+  return Boolean(state.user) && TRIP_EDITOR_UIDS.has(state.user.uid);
+}
 
 function clone(value) {
   return typeof structuredClone === "function" ? structuredClone(value) : JSON.parse(JSON.stringify(value));
@@ -246,7 +256,7 @@ function setTab(tab, options) {
     button.setAttribute("aria-selected",String(active));
     button.tabIndex = active ? 0 : -1;
   });
-  $(".floating-add").hidden = state.tab !== "library";
+  updateEditAffordances();
   if (!(options && options.skipUrl)) updateUrl({ replace:!(options && options.push) });
   if (!(options && options.keepScroll)) window.scrollTo({ top:0,behavior:options && options.instant ? "auto" : "smooth" });
 }
@@ -491,8 +501,9 @@ function resourceCard(resource) {
   const statusLabel = { idea:"想去",shortlist:"候選",booked:"已預訂" }[resource.status] || "想去";
   return '<article class="resource-card" data-testid="resource-card"><div class="resource-card-top"><span class="resource-icon" style="color:' +
     category.color + ";background:" + category.color + '18">' + category.icon + '</span><div class="card-actions">' +
-    (resource.pinned ? '<span class="pinned-badge">⌖ 置頂</span>' : '') + '<button type="button" data-edit="' +
-    escapeAttr(resource.id) + '" aria-label="編輯 ' + escapeAttr(resource.title) + '">•••</button></div></div>' +
+    (resource.pinned ? '<span class="pinned-badge">⌖ 置頂</span>' : '') +
+    (canModifyContent() ? '<button type="button" data-edit="' + escapeAttr(resource.id) +
+      '" aria-label="編輯 ' + escapeAttr(resource.title) + '">•••</button>' : '') + '</div></div>' +
     '<div class="resource-card-body"><div class="metadata-row"><span>' + escapeHtml(resource.location || "未指定地點") +
     '</span><span>·</span><span>' + category.name + '</span><span class="resource-status status-' +
     escapeAttr(resource.status) + '">' + statusLabel + '</span></div><h2>' + escapeHtml(resource.title) + '</h2>' +
@@ -538,6 +549,7 @@ function renderResources() {
 }
 
 function openEditor(id) {
+  if (!canOpenTripEditor()) return;
   state.editingId = id || null;
   const form = $("#resourceForm");
   form.reset();
@@ -659,25 +671,33 @@ async function deleteCurrentResource() {
   }
 }
 
-function canOpenItineraryEditor() {
+// UI 層的顯示判斷；真正的安全邊界是 Firestore Rules。
+function canModifyContent() {
+  return !firebaseConfigured() || state.firebaseError || canEditTrip();
+}
+
+function updateEditAffordances() {
+  const allowed = canModifyContent();
+  $$('[data-action="add"],[data-action="add-itinerary"]').forEach((button) => { button.hidden = !allowed; });
+  $(".floating-add").hidden = state.tab !== "library" || !allowed;
+}
+
+function canOpenTripEditor() {
   if (!firebaseConfigured()) return true;
-  if (state.firebaseError || !navigator.onLine) {
+  if (state.firebaseError) {
     state.backend = "local";
     setSyncStatus(navigator.onLine ? "local" : "offline");
     showToast("雲端暫時不可用，已切換為本機編輯");
     return true;
   }
-  if (state.user && state.itineraryAuthorized) return true;
-  if (state.user && state.resourceAuthorized) {
-    showToast("行程同步正在重新連線，這次修改會先保存在本機");
-    return true;
-  }
+  // 離線時仍以快取的登入身分判斷；寫入會由 canReachNetwork() 自動改走本機保存。
+  if (canEditTrip()) return true;
   if (state.user) {
     showToast("這個帳號沒有共同編輯權限");
     return false;
   }
   openShareDialog();
-  showToast("請先登入再共同編輯行程");
+  showToast("請先登入再共同編輯");
   return false;
 }
 
@@ -718,7 +738,7 @@ function renderHistory(item) {
 }
 
 function openItineraryEditor(id, dateKey, source) {
-  if (!canOpenItineraryEditor()) return;
+  if (!canOpenTripEditor()) return;
   state.editingItineraryId = id || null;
   state.returnToDayAfterEditor = source === "day" || Boolean($("#dayDialog").open);
   state.conflictItem = id ? state.syncConflictRemotes.get(id) || null : null;
@@ -808,7 +828,7 @@ async function withTimeout(promise,timeoutMs = 8000) {
 }
 async function submitItineraryItem(event) {
   event.preventDefault();
-  if (!canOpenItineraryEditor()) return;
+  if (!canOpenTripEditor()) return;
   const input = itineraryFormInput();
   if (!tripDay(input.date)) { showToast("請選擇這趟旅行中的日期"); return; }
   if (!input.title) { showToast("請輸入行程名稱"); return; }
@@ -1063,19 +1083,26 @@ function duplicateItineraryItem() {
   $("#itineraryTitle").select();
 }
 
+function cloudSyncMode(snapshot) {
+  if (snapshot.metadata.hasPendingWrites) return "saving";
+  if (snapshot.metadata.fromCache && !navigator.onLine) return "offline";
+  if (state.authorized) return "cloud";
+  return canEditTrip() ? "connecting" : "viewer";
+}
+
 function setSyncStatus(mode) {
   const dot = $("#syncDot");
   dot.className = "sync-dot";
   const labels = {
     local:"本機草稿",saving:"正在儲存…",connecting:"同步連線中…",
-    cloud:"已即時同步",error:"連線異常",offline:"離線保存"
+    cloud:"已即時同步",error:"連線異常",offline:"離線保存",viewer:"最新資料（唯讀）"
   };
   if (["local","offline"].includes(mode)) dot.classList.add("local");
   if (["saving","connecting"].includes(mode)) dot.classList.add("saving");
   if (mode === "error") dot.classList.add("error");
   $("#syncLabel").textContent = labels[mode] || labels.local;
   $("#syncLabel").dataset.state = mode;
-  if (mode === "cloud") state.lastSyncAt = Date.now();
+  if (mode === "cloud" || mode === "viewer") state.lastSyncAt = Date.now();
   renderSyncSummary();
 }
 
@@ -1102,15 +1129,19 @@ function updateModeBanner() {
     banner.innerHTML = '<span class="banner-icon">✓</span><div><strong>Firebase 即時同步已連線</strong><p>你和女朋友會看到同一份資料。</p></div><button type="button" id="modeAction">帳號資訊</button>';
   } else if (firebaseConfigured() && state.user) {
     banner.className = "mode-banner local";
-    banner.innerHTML = '<span class="banner-icon">!</span><div><strong>已登入，等待資料庫授權</strong><p>請確認目前登入的是已授權帳號。</p></div><button type="button" id="modeAction">查看 UID</button>';
+    banner.innerHTML = '<span class="banner-icon">!</span><div><strong>已登入，但沒有編輯權限</strong><p>看到的是最新資料，修改需要已授權的帳號。</p></div><button type="button" id="modeAction">查看 UID</button>';
+  } else if (firebaseConfigured() && state.itineraryReadable) {
+    banner.className = "mode-banner cloud";
+    banner.innerHTML = '<span class="banner-icon">👁</span><div><strong>正在看最新行程（唯讀）</strong><p>登入已授權的帳號才能修改。</p></div><button type="button" id="modeAction">登入</button>';
   } else if (firebaseConfigured()) {
     banner.className = "mode-banner local";
-    banner.innerHTML = '<span class="banner-icon">G</span><div><strong>雲端已設定，請先登入</strong><p>使用 Google 帳號登入共同資料庫。</p></div><button type="button" id="modeAction">登入</button>';
+    banner.innerHTML = '<span class="banner-icon">G</span><div><strong>雲端已設定，正在載入最新資料</strong><p>登入已授權帳號即可共同編輯。</p></div><button type="button" id="modeAction">登入</button>';
   } else {
     banner.className = "mode-banner local";
     banner.innerHTML = '<span class="banner-icon">i</span><div><strong>目前是本機草稿</strong><p>資料只存在這台裝置。</p></div><button type="button" id="modeAction">查看設定</button>';
   }
   $("#modeAction").addEventListener("click",() => firebaseConfigured() ? openShareDialog() : openSingleDialog($("#setupDialog")));
+  updateEditAffordances();
 }
 
 function openSingleDialog(dialog) {
@@ -1175,20 +1206,16 @@ async function connectFirebase() {
       state.authorized = false;
       state.resourceAuthorized = false;
       state.itineraryAuthorized = false;
+      state.resourceReadable = false;
+      state.itineraryReadable = false;
       if (state.unsubscribeResources) state.unsubscribeResources();
       if (state.unsubscribeItinerary) state.unsubscribeItinerary();
       state.unsubscribeResources = null;
       state.unsubscribeItinerary = null;
-      if (!user) {
-        state.backend = "local";
-        state.resources = loadLocalResources();
-        state.itineraryItems = loadLocalItineraryItems();
-        setSyncStatus("local");
-        updateModeBanner();
-        renderAll();
-        return;
-      }
-      $("#currentAvatar").textContent = initials(user.displayName || user.email || "我");
+      if (state.signingOut) return;
+      if (user) $("#currentAvatar").textContent = initials(user.displayName || user.email || "我");
+      // 未登入訪客也要訂閱，否則會停留在硬編碼的 seed 行程。寫入權限另由 canEditTrip() 判斷。
+      setSyncStatus("connecting");
       listenToCloud();
       updateModeBanner();
     });
@@ -1205,21 +1232,23 @@ function listenToCloud() {
   const resourceRef = f.collection(state.firebase.db,"boards",BOARD_ID,"resources");
   const itineraryRef = f.collection(state.firebase.db,"boards",BOARD_ID,"itineraryItems");
   state.unsubscribeResources = f.onSnapshot(resourceRef,{ includeMetadataChanges:true },async (snapshot) => {
-    state.resourceAuthorized = true;
+    state.resourceReadable = true;
+    state.resourceAuthorized = canEditTrip();
     state.authorized = state.resourceAuthorized && state.itineraryAuthorized;
     state.backend = "cloud";
     state.resourcePending = snapshot.metadata.hasPendingWrites;
     const cloud = snapshot.docs.map((item) => Object.assign({ id:item.id },item.data()));
-    const pendingIds = new Set(loadOutbox().map((item) => item.id));
-    const localPending = loadLocalResources().filter((item) => pendingIds.has(item.id));
     const merged = new Map(cloud.map((item) => [item.id,item]));
-    localPending.forEach((item) => merged.set(item.id,item));
+    if (canEditTrip()) {
+      const pendingIds = new Set(loadOutbox().map((item) => item.id));
+      loadLocalResources().filter((item) => pendingIds.has(item.id)).forEach((item) => merged.set(item.id,item));
+    }
     state.resources = Array.from(merged.values());
     if (!snapshot.metadata.hasPendingWrites && !snapshot.metadata.fromCache) state.lastSyncAt = Date.now();
-    setSyncStatus(snapshot.metadata.hasPendingWrites ? "saving" : (snapshot.metadata.fromCache && !navigator.onLine ? "offline" : (state.authorized ? "cloud" : "connecting")));
+    setSyncStatus(cloudSyncMode(snapshot));
     updateModeBanner();
     renderResources();
-    if (snapshot.empty && !snapshot.metadata.fromCache && !sessionStorage.getItem("trip-seeded")) {
+    if (canEditTrip() && snapshot.empty && !snapshot.metadata.fromCache && !sessionStorage.getItem("trip-seeded")) {
       sessionStorage.setItem("trip-seeded","1");
       await Promise.all(loadLocalResources().map((resource) =>
         withTimeout(f.setDoc(f.doc(state.firebase.db,"boards",BOARD_ID,"resources",resource.id),Object.assign({},resource,{
@@ -1229,6 +1258,7 @@ function listenToCloud() {
     flushResourceOutbox();
   },(error) => {
     console.warn(error);
+    state.resourceReadable = false;
     state.resourceAuthorized = false;
     state.authorized = false;
     state.backend = "local";
@@ -1239,13 +1269,15 @@ function listenToCloud() {
   });
 
   state.unsubscribeItinerary = f.onSnapshot(itineraryRef,{ includeMetadataChanges:true },async (snapshot) => {
-    state.itineraryAuthorized = true;
+    state.itineraryReadable = true;
+    state.itineraryAuthorized = canEditTrip();
     state.authorized = state.resourceAuthorized && state.itineraryAuthorized;
     state.backend = "cloud";
     state.itineraryPending = snapshot.metadata.hasPendingWrites;
     const cloudItems = snapshot.docs.map((item) => Object.assign({ id:item.id },item.data()));
     const cloudById = new Map(cloudItems.map((item) => [item.id,item]));
-    const localDrafts = loadLocalItineraryItems();
+    // 訪客沒有本機草稿的概念，留空可讓下方的衝突偵測與 migration 自然變成 no-op。
+    const localDrafts = canEditTrip() ? loadLocalItineraryItems() : [];
     const syncConflicts = localDrafts.filter((item) => {
       const cloud = cloudById.get(item && item.id);
       return item && cloud && item.baseRevision != null && Number(cloud.revision || 0) !== Number(item.baseRevision);
@@ -1264,11 +1296,11 @@ function listenToCloud() {
       sessionStorage.setItem("trip-sync-conflict","1"); showToast("有本機行程與旅伴版本衝突，打開該筆即可選擇版本");
     }
     if (!snapshot.metadata.hasPendingWrites && !snapshot.metadata.fromCache) state.lastSyncAt = Date.now();
-    setSyncStatus(snapshot.metadata.hasPendingWrites ? "saving" : (snapshot.metadata.fromCache && !navigator.onLine ? "offline" : (state.authorized ? "cloud" : "connecting")));
+    setSyncStatus(cloudSyncMode(snapshot));
     updateModeBanner();
     renderAll();
     if ($("#dayDialog").open) renderDayDetails();
-    if (localDrafts.length && !snapshot.metadata.fromCache && navigator.onLine && !state.migratingItinerary) {
+    if (canEditTrip() && localDrafts.length && !snapshot.metadata.fromCache && navigator.onLine && !state.migratingItinerary) {
       state.migratingItinerary = true;
       try {
         await Promise.all(draftsToMigrate.map((item) => {
@@ -1296,6 +1328,7 @@ function listenToCloud() {
     }
   },(error) => {
     console.warn(error);
+    state.itineraryReadable = false;
     state.itineraryAuthorized = false;
     state.authorized = false;
     state.itineraryItems = loadLocalItineraryItems();
@@ -1325,6 +1358,9 @@ async function secureGoogleSignOut() {
   const hasPending = loadOutbox().length > 0 || loadLocalItineraryItems().length > 0;
   if (hasPending && !confirm("這台裝置還有尚未同步的變更。現在登出會清除本機草稿，確定繼續嗎？")) return;
   const firebase = state.firebase;
+  // 登出後 onAuthStateChanged 會再觸發一次；若讓它重新掛上訪客監聽，
+  // terminate 與 clearIndexedDbPersistence 會失敗，裝置上的快取就清不掉。
+  state.signingOut = true;
   if (state.unsubscribeResources) state.unsubscribeResources();
   if (state.unsubscribeItinerary) state.unsubscribeItinerary();
   state.unsubscribeResources = null; state.unsubscribeItinerary = null;
@@ -1744,21 +1780,14 @@ const routeTitleCollection = (_unusedDb, ...segments) =>
 const routeTitleDoc = (_unusedDb, ...segments) =>
   state.firebase.firestore.doc(state.firebase.db, ...segments);
 const routeTitleOnSnapshot = (...args) => state.firebase.firestore.onSnapshot(...args);
-const routeTitleServerTimestamp = () => new Date();
+const routeTitleServerTimestamp = () => state.firebase.firestore.serverTimestamp();
 const routeTitleSetDoc = (...args) => state.firebase.firestore.setDoc(...args);
 
 const routeTitleValues = new Map();
 let routeTitleUnsubscribe = null;
 
-const routeTitleEditorUids = new Set([
-  "vppVxbbeuSWpvwKfiI6M86xmsxk2",
-  "hOiABKk0adcYs098cqrZyIs1KeC3"
-]);
-
 function routeTitleCanEdit() {
-  return typeof state !== "undefined"
-    && Boolean(state.user)
-    && routeTitleEditorUids.has(state.user.uid);
+  return canEditTrip();
 }
 
 function routeTitleNotify(message) {
@@ -1770,19 +1799,9 @@ function routeTitleNotify(message) {
 }
 
 function routeTitleDefault(card, date) {
-  try {
-    if (typeof days !== "undefined" && Array.isArray(days)) {
-      const matchingDay = days.find((day) => {
-        if (!day) return false;
-        if (String(day.date || "") === date) return true;
-        return typeof dateKey === "function" && dateKey(day.date) === date;
-      });
-      if (matchingDay && String(matchingDay.city || "").trim()) {
-        return String(matchingDay.city).trim();
-      }
-    }
-  } catch (error) {
-    console.debug("Route title fallback used", error);
+  const matchingDay = tripDay(date);
+  if (matchingDay && String(matchingDay.city || "").trim()) {
+    return String(matchingDay.city).trim();
   }
 
   const aria = card.getAttribute("aria-label") || "";
