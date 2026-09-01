@@ -1,4 +1,4 @@
-const VERSION = "snow-trip-v5-20260830";
+const VERSION = "snow-trip-v6-20260901";
 const SHELL_CACHE = VERSION + "-shell";
 const RUNTIME_CACHE = VERSION + "-runtime";
 const FIREBASE_CACHE = VERSION + "-firebase-modules";

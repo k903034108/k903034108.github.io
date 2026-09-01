@@ -1737,3 +1737,216 @@ updateNetworkBanner();
 initializeRoute();
 registerPwa();
 connectFirebase();
+
+/* ROUTE_TITLE_EDITOR_V1 */
+const routeTitleCollection = (_unusedDb, ...segments) =>
+  state.firebase.firestore.collection(state.firebase.db, ...segments);
+const routeTitleDoc = (_unusedDb, ...segments) =>
+  state.firebase.firestore.doc(state.firebase.db, ...segments);
+const routeTitleOnSnapshot = (...args) => state.firebase.firestore.onSnapshot(...args);
+const routeTitleServerTimestamp = () => new Date();
+const routeTitleSetDoc = (...args) => state.firebase.firestore.setDoc(...args);
+
+const routeTitleValues = new Map();
+let routeTitleUnsubscribe = null;
+
+const routeTitleEditorUids = new Set([
+  "vppVxbbeuSWpvwKfiI6M86xmsxk2",
+  "hOiABKk0adcYs098cqrZyIs1KeC3"
+]);
+
+function routeTitleCanEdit() {
+  return typeof state !== "undefined"
+    && Boolean(state.user)
+    && routeTitleEditorUids.has(state.user.uid);
+}
+
+function routeTitleNotify(message) {
+  if (typeof showToast === "function") {
+    showToast(message);
+    return;
+  }
+  window.alert(message);
+}
+
+function routeTitleDefault(card, date) {
+  try {
+    if (typeof days !== "undefined" && Array.isArray(days)) {
+      const matchingDay = days.find((day) => {
+        if (!day) return false;
+        if (String(day.date || "") === date) return true;
+        return typeof dateKey === "function" && dateKey(day.date) === date;
+      });
+      if (matchingDay && String(matchingDay.city || "").trim()) {
+        return String(matchingDay.city).trim();
+      }
+    }
+  } catch (error) {
+    console.debug("Route title fallback used", error);
+  }
+
+  const aria = card.getAttribute("aria-label") || "";
+  const daytimeMatch = aria.match(/白天\s*([^，,]+?)(?=，|,|晚上|$)/);
+  return daytimeMatch && daytimeMatch[1].trim()
+    ? daytimeMatch[1].trim()
+    : "未命名行程";
+}
+
+function routeTitleStartEditing(card, control, date, defaultTitle) {
+  if (!routeTitleCanEdit()) {
+    routeTitleNotify("請先使用有編輯權限的帳號登入");
+    return;
+  }
+
+  const currentTitle = String(routeTitleValues.get(date)?.title || defaultTitle).trim();
+  const form = document.createElement("form");
+  form.className = "route-title-inline-form";
+  form.setAttribute("aria-label", `編輯 ${date} 的路線標題`);
+
+  const input = document.createElement("input");
+  input.className = "route-title-input";
+  input.type = "text";
+  input.maxLength = 60;
+  input.required = true;
+  input.value = currentTitle;
+  input.setAttribute("aria-label", "每日路線標題");
+
+  const saveButton = document.createElement("button");
+  saveButton.type = "submit";
+  saveButton.className = "route-title-save-button";
+  saveButton.textContent = "儲存";
+
+  const cancelButton = document.createElement("button");
+  cancelButton.type = "button";
+  cancelButton.className = "route-title-cancel-button";
+  cancelButton.textContent = "取消";
+
+  form.append(input, saveButton, cancelButton);
+  control.replaceChildren(form);
+  input.focus();
+  input.select();
+
+  const restore = () => {
+    control.replaceChildren();
+    delete control.dataset.routeTitleSignature;
+    routeTitleEnhanceCards();
+  };
+  cancelButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    restore();
+  });
+
+  form.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const title = input.value.trim();
+    if (!title) {
+      input.focus();
+      return;
+    }
+
+    saveButton.disabled = true;
+    cancelButton.disabled = true;
+    input.disabled = true;
+    try {
+      await routeTitleSetDoc(
+        routeTitleDoc(null, "boards", "tohoku-2026", "dayMeta", date),
+        {
+          date,
+          title,
+          updatedAt: routeTitleServerTimestamp(),
+          updatedByUid: state.user.uid
+        },
+        { merge: true }
+      );
+      routeTitleValues.set(date, { date, title });
+      routeTitleNotify("這天的路線標題已更新");
+      restore();
+    } catch (error) {
+      console.error("Unable to save route title", error);
+      routeTitleNotify("標題儲存失敗，請確認已登入且 Firebase 規則已發布");
+      saveButton.disabled = false;
+      cancelButton.disabled = false;
+      input.disabled = false;
+      input.focus();
+    }
+  });
+}
+
+function routeTitleEnhanceCards() {
+  document.querySelectorAll(".route-day-card[data-day]").forEach((card) => {
+    const date = String(card.dataset.day || "").trim();
+    if (!date) return;
+
+    let control = card.querySelector(":scope > .route-title-control");
+    if (!control) {
+      control = document.createElement("div");
+      control.className = "route-title-control";
+      control.addEventListener("click", (event) => event.stopPropagation());
+      const heading = card.querySelector(":scope > .route-day-head, :scope > .route-day-date");
+      if (heading) heading.insertAdjacentElement("afterend", control);
+      else card.prepend(control);
+    }
+
+    if (control.querySelector(".route-title-inline-form")) return;
+
+    const defaultTitle = routeTitleDefault(card, date);
+    const customTitle = String(routeTitleValues.get(date)?.title || "").trim();
+    const canEdit = routeTitleCanEdit();
+    const signature = (customTitle || defaultTitle) + "|" + (canEdit ? "edit" : "read");
+    if (control.dataset.routeTitleSignature === signature) return;
+    control.dataset.routeTitleSignature = signature;
+    const label = document.createElement("strong");
+    label.className = "route-title-label";
+    if (!customTitle) label.classList.add("is-default");
+    label.textContent = customTitle || defaultTitle;
+    control.replaceChildren(label);
+
+    if (canEdit) {
+      const editButton = document.createElement("button");
+      editButton.type = "button";
+      editButton.className = "route-title-edit-button";
+      editButton.textContent = "編輯";
+      editButton.setAttribute("aria-label", `編輯 ${date} 的路線標題`);
+      editButton.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        routeTitleStartEditing(card, control, date, defaultTitle);
+      });
+      control.append(editButton);
+    }
+  });
+}
+
+function routeTitleInitialize() {
+  if (routeTitleUnsubscribe) return;
+  if (!state.firebase || !state.firebase.firestore || !state.firebase.db) {
+    window.setTimeout(routeTitleInitialize, 500);
+    return;
+  }
+  const routeTitlesRef = routeTitleCollection(null, "boards", "tohoku-2026", "dayMeta");
+  routeTitleUnsubscribe = routeTitleOnSnapshot(
+    routeTitlesRef,
+    (snapshot) => {
+      routeTitleValues.clear();
+      snapshot.forEach((snapshotDoc) => {
+        const value = snapshotDoc.data() || {};
+        routeTitleValues.set(snapshotDoc.id, value);
+      });
+      routeTitleEnhanceCards();
+    },
+    (error) => console.warn("Unable to load route titles", error)
+  );
+
+  const observer = new MutationObserver(() => routeTitleEnhanceCards());
+  observer.observe(document.body, { childList: true, subtree: true });
+  window.addEventListener("focus", routeTitleEnhanceCards);
+  routeTitleEnhanceCards();
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", routeTitleInitialize, { once: true });
+} else {
+  routeTitleInitialize();
+}
