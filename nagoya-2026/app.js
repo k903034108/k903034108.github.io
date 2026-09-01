@@ -33,12 +33,13 @@ const itinerary = [
     ],
   },
   {
-    date:"9/21",day:"一",city:"犬山",title:"犬山城與城下町",detail:"五連休第一天只安排犬山一區：開門即入城，午後走城下町後回名古屋。",stay:"Central Nagoya Stays",tone:"north",notice:"敬老之日，五連休人潮高；犬山城 09:00–17:00、最晚 16:30 入場，請開門即進。",
+    date:"9/21",day:"一",city:"犬山・惠那峽・馬籠宿・妻籠宿",title:"Klook 一日遊：犬山城・惠那峽・馬籠宿・妻籠宿",detail:"五連休第一天改成整團跟車：犬山城、惠那峽展望台，再走馬籠宿與妻籠宿兩個宿場町，傍晚回名古屋解散。",stay:"Central Nagoya Stays",tone:"north",notice:"已完成 Klook 預訂；巴士只保證出發與解散時間，中途到站時間為估算，實際依當天導遊安排。集合點與導遊聯絡方式以出發前一天的電子憑證通知為準。",
     schedule:[
-      { id:"plan-20260921-01",time:"07:50",kind:"交通",title:"從住宿出發",place:"Central Nagoya Stays",detail:"步行約 14 分鐘至名鐵名古屋站；敬老之日、五連休第一天，07:00 起床，請準時出發。",nav:"https://www.google.com/maps/search/?api=1&query=Central+Nagoya+Stays+1+Chome-28-8+Wakamiyacho+Nakamura+Ward+Nagoya",status:"current" },
-      { id:"plan-20260921-02",time:"08:50",kind:"交通",title:"抵達犬山城下町",place:"犬山城前",detail:"名鐵名古屋→犬山約 25 分鐘，步行約 20 分鐘；先到門口等開門，避開五連休入場隊伍。",nav:"https://www.google.com/maps/search/?api=1&query=Inuyama+Castle",status:"current" },
-      { id:"plan-20260921-03",time:"09:00",kind:"景點",title:"犬山城",place:"國寶犬山城",detail:"開放 09:00–17:00、最晚 16:30 入場；天守樓梯陡，穿防滑鞋。",official:"https://inuyama-castle.jp/",nav:"https://www.google.com/maps/search/?api=1&query=Inuyama+Castle",status:"current" },
-      { id:"plan-20260921-04",time:"10:30",kind:"散步",title:"犬山城下町散策與午餐",place:"本町通・三光稻荷神社一帶",detail:"由犬山城步行即可抵達；只逛同一區，15:00 離開犬山、傍晚前回住宿休息。",official:"https://inuyama.gr.jp/",nav:"https://www.google.com/maps/search/?api=1&query=Inuyama+Jokamachi",status:"current" },
+      { id:"plan-20260921-01",time:"08:20–08:30",kind:"集合",title:"集合並搭乘 Klook 一日遊巴士",place:"名古屋（依電子憑證資訊，商品頁列於 Ministop 附近）",detail:"預留約 10 分鐘報到，08:30 巴士出發；全程含中文／英文／日文導覽，餐點與保險不含，可攜 1 件標準行李。集合點與導遊聯絡方式以出發前一天的電子憑證通知為準。",official:"https://www.klook.com/zh-TW/activity/175724-day-trip-to-magomejuku-tsumagojuku-and-enakyo-from-nagoya/",status:"confirmed" },
+      { id:"plan-20260921-02",time:"09:30–10:30",kind:"景點",title:"犬山城・三光稻荷",place:"國寶犬山城・三光稻荷神社",detail:"第 1 站，停留約 60 分鐘；到站時間為估算，實際依當天路況。天守樓梯較陡，建議穿防滑鞋。",official:"https://inuyama-castle.jp/",nav:"https://www.google.com/maps/search/?api=1&query=Inuyama+Castle",status:"confirmed" },
+      { id:"plan-20260921-03",time:"11:00–11:30",kind:"景點",title:"惠那峽展望台",place:"惠那峽",detail:"第 2 站，停留約 30 分鐘。",nav:"https://www.google.com/maps/search/?api=1&query=Enakyo",status:"confirmed" },
+      { id:"plan-20260921-04",time:"12:00–14:30",kind:"景點",title:"馬籠宿・妻籠宿",place:"馬籠宿・妻籠宿",detail:"第 3–4 站，兩個宿場町合計停留約 150 分鐘，含午餐時間；以步行為主，建議帶現金。結束後巴士直接返回名古屋。",nav:"https://www.google.com/maps/search/?api=1&query=Magome-juku",status:"confirmed" },
+      { id:"plan-20260921-05",time:"18:20",kind:"解散",title:"名古屋站解散",place:"名鐵名古屋站",detail:"回程車程視路況而定，出發前 24 小時可免費取消、逾時或未到恕不退款，天候或未滿 4 人可能改期；晚餐請自行安排。",status:"confirmed" },
     ],
   },
   {
